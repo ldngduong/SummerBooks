@@ -1,9 +1,7 @@
 import React, { useEffect } from "react";
-import heroImg from "../../assets/hero.jpg";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchShopManager } from "../../redux/slices/shopManagerSlice";
-import Loading from "../Common/Loading";
 
 const Hero = () => {
   const dispatch = useDispatch();

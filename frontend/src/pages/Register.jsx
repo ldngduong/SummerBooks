@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import registerImg from "../assets/Hat/1.jpg";
+import registerImg from "../assets/login.jpg";
 import { registerUser } from "../redux/slices/authSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";

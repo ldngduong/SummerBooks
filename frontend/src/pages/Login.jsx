@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import loginImg from '../assets/Bag/1.jpg'
+import loginImg from '../assets/login.jpg'
 import {loginUser} from '../redux/slices/authSlice'
 import { fetchCart, mergeCart } from '../redux/slices/cartSlice'
 import { toast } from 'sonner'
