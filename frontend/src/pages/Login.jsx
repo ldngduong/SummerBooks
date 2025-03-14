@@ -62,7 +62,7 @@ const Login = () => {
             </div>
             <button 
                 type='submit' 
-                className='cursor-pointer w-full bg-gray-700 text-white p-2 rounded-lg font-semibold hover:bg-gray-600 transition-all duration-300'
+                className='cursor-pointer w-full bg-amber-600 text-white p-2 rounded-lg font-semibold hover:bg-amber-700 transition-all duration-300'
             >
                 Đăng nhập
             </button>

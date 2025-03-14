@@ -121,7 +121,7 @@ const ProductsDetails = ({id}) => {
                     <button 
                         disabled={isButtonDisabled}
                         onClick={handleAddToCart}
-                        className={`bg-amber-700 text-white py-2 px-6 rounded w-full mb-4 hover:bg-amber-600 cursor-pointer transition-all duration-300 ${isButtonDisabled ? 'cursor-not-allowed opacity-50' : ''}`}
+                        className={`bg-amber-600 text-white py-2 px-6 rounded w-full mb-4 hover:bg-amber-700 cursor-pointer transition-all duration-300 ${isButtonDisabled ? 'cursor-not-allowed opacity-50' : ''}`}
                     >
                         {isButtonDisabled ? 'Đang thêm vào giỏ hàng...' : 'Thêm vào giỏ hàng'}
                     </button>
