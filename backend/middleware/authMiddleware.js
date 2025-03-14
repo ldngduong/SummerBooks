@@ -23,7 +23,7 @@ const protect = async (req, res, next) => {
 
 // Middleware yêu cầu admin
 const admin = (req, res, next) => {
-    if(req.user && req.user.role === 'Quản trị viên'){
+    if(req.user && req.user.role === 'Quản trị viên' || req.user && req.user.role === 'Nhân viên nhập liệu'  || req.user && req.user.role === 'Nhân viên bán hàng' ){
         next()
     } else{
         res.status(403).json({message: 'Bạn không có quyền admin'})

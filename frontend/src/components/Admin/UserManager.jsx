@@ -21,7 +21,7 @@ const UserManager = () => {
     email: '',
     password: '',
     name: '',
-    role: 'Nhân viên'
+    role: 'Khách hàng'
   })
   const handleFormChange = (e) => {
     setFormData({...formData, [e.target.name]:e.target.value})
@@ -41,7 +41,7 @@ const UserManager = () => {
         email: '',
         password: '',
         name: '',
-        role: 'Nhân viên'
+        role: 'Khách hàng'
       })
     } catch (error) {
             toast.error(error.message|| 'Thêm người dùng không thành công. Vui lòng kiểm tra lại thông tin');
@@ -85,7 +85,8 @@ const UserManager = () => {
                                     <th className=''>
                                         <select value={user.role} onChange={(e) => {handleRoleChange(user._id, e)}} className='px-2 py-1 rounded-md border border-gray-500' name="role" id="">
                                             <option value="Quản trị viên">Quản trị viên</option>
-                                            <option value="Nhân viên">Nhân viên</option>
+                                            <option value="Nhân viên bán hàng">Nhân viên bán hàng</option>
+                                            <option value="Nhân viên nhập liệu">Nhân viên nhập liệu</option>
                                             <option value="Khách hàng">Khách hàng</option>
                                         </select>
                                     </th>
@@ -120,7 +121,8 @@ const UserManager = () => {
                         <div className="mb-4 w-full">
                             <label className='text-sm text-gray-600 block mb-1'>Vai trò</label>
                             <select name='role' onChange={handleFormChange} value={formData.role} className='border-gray-600 border w-full p-2 rounded-lg'>
-                                <option value="Nhân viên">Nhân viên</option>
+                                <option value="Nhân viên nhập liệu">Nhân viên nhập liệu</option>
+                                <option value="Nhân viên bán hàng">Nhân viên bán hàng</option>
                                 <option value="Quản trị viên">Quản trị viên</option>
                                 <option value="Khách hàng">Khách hàng</option>
                             </select>

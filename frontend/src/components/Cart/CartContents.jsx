@@ -35,7 +35,7 @@ const CartContents = ({cart, userId, guestId}) => {
                         <div className="">
                             <h3>{product.name}</h3>
                             <p className='text-sm text-gray-500'>
-                                Size: {product.size} | Màu: {product.color}
+                                {product.author}
                             </p>
                             <div className="flex items-center mt-2">
                                 <button onClick={() => {handleAddToCart(product.productId, -1, product.quantity, product.size, product.color)}} className='border border-gray-500 rounded px-2 py-0.5 text-xl font-medium cursor-pointer'>-</button>

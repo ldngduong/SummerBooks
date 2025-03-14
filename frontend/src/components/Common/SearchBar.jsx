@@ -26,11 +26,11 @@ const SearchBar = () => {
                         className='bg-gray-100 px-4 py-2 pl-2 pr-12 rounded-lg focus:outline-none w-full placeholder:text-gray-700' 
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
-                    <button type='submit' className='cursor-pointer h-full absolute right-3  text-gray-600 hover:text-gray-800'>
+                    <button type='submit' className='cursor-pointer h-full absolute right-3  text-amber-600 hover:text-amber-800'>
                         <HiMagnifyingGlass className='h-6 w-6' />
                     </button>
                 </div>
-                <button className='border border-gray-700 text-gray-700 p-2 rounded-full hover:text-gray-600 cursor-pointer' onClick={handleSearchToggle}>
+                <button className='border border-amber-700 text-amber-700 p-2 rounded-full hover:text-amber-600 cursor-pointer' onClick={handleSearchToggle}>
                     <HiMiniXMark />
                 </button>
             </motion.form>

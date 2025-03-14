@@ -13,7 +13,7 @@ const Topbar = () => {
     }, [dispatch]);
   
   return ( shopManager &&
-    <div className='bg-gray-800 text-white'>
+    <div className='bg-amber-600 text-white'>
         <div className="container mx-auto flex justify-between items-center py-3 px-4">
             <div className="hidden md:flex items-center space-x-4">
                 {shopManager.contact.meta && (

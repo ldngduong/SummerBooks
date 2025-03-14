@@ -15,12 +15,11 @@ const orderItemSchema = new mongoose.Schema(
             type: String,
             required: true
         },
+        author: String,
         price: {
             type: Number,
             required: true
         },
-        size: String, 
-        color: String,
         quantity: {
             type: Number,
             required: true

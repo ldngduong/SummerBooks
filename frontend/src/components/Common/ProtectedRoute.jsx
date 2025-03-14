@@ -6,11 +6,16 @@ const ProtectedRoute = ({ children, role }) => {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
 
-  if (!user || (role && user.role !== role)) {
+  if (!user) {
     return <Navigate to="/login" replace />;
+  } 
+  if (role === 'admin'){
+    if(user && (user.role === 'Quản trị viên' || user.role === 'Nhân viên bán hàng' || user.role === 'Nhân viên nhập liệu')){
+      return children
+    }
   }
 
-  return children;
+  return <Navigate to="/login" replace />;
 };
 
 export default ProtectedRoute;

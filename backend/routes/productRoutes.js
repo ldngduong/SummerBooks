@@ -11,40 +11,24 @@ router.post("/", protect, admin, async (req, res) => {
       name,
       description,
       price,
-      discountPrice,
+      countOfPage,
       countInStock,
       category,
-      brand,
-      sizes,
-      colors,
-      material,
+      author,
       images,
-      isFeatured,
-      isPublished,
-      tags,
-      dimensions,
-      weight,
-      sku,
+      publishedAt,
     } = req.body;
 
     const product = new Product({
       name,
       description,
       price,
-      discountPrice,
+      countOfPage,
       countInStock,
       category,
-      brand,
-      sizes,
-      colors,
-      material,
+      author,
       images,
-      isFeatured,
-      isPublished,
-      tags,
-      dimensions,
-      weight,
-      sku,
+      publishedAt,
       user: req.user._id,
     });
 
@@ -66,20 +50,12 @@ router.put("/:id", protect, admin, async (req, res) => {
       name,
       description,
       price,
-      discountPrice,
+      countOfPage,
       countInStock,
       category,
-      brand,
-      sizes,
-      colors,
-      material,
+      author,
       images,
-      isFeatured,
-      isPublished,
-      tags,
-      dimensions,
-      weight,
-      sku,
+      publishedAt,
     } = req.body;
     const product = await Product.findById(req.params.id);
 
@@ -87,23 +63,12 @@ router.put("/:id", protect, admin, async (req, res) => {
       product.name = name || product.name;
       product.description = description || product.description;
       product.price = price || product.price;
-      product.discountPrice = discountPrice || product.discountPrice;
+      product.countOfPage = countOfPage || product.countOfPage;
       product.countInStock = countInStock || product.countInStock;
-      product.brand = brand || product.brand;
-      product.sizes = sizes || product.sizes;
-      product.colors = colors || product.colors;
-      product.material = material || product.material;
       product.category = category || product.category;
       product.images = images || product.images;
-      product.isFeatured =
-        isFeatured !== undefined ? isFeatured : product.isFeatured;
-      product.isPublished =
-        isPublished !== undefined ? isPublished : product.isPublished;
-      product.tags = tags || product.tags;
-      product.dimensions = dimensions || product.dimensions;
-      product.weight = weight || product.weight;
-      product.sku = sku || product.sku;
-
+      product.author = author || product.author;
+      product.publishedAt = publishedAt || product.publishedAt;
       const updatedProduct = await product.save();
       res.status(200).json(updatedProduct);
     } else {

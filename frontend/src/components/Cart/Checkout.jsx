@@ -26,12 +26,13 @@ const Checkout = () => {
         const res = await dispatch(createCheckout({
             checkoutItems: cart.products,
             shippingAddress,
-            paymentMethod: 'Paypal',
+            paymentMethod: 'Ship COD',
             totalPrice: cart.totalPrice,
             name: firstName + ' ' + lastName,
             phone: phone
         }))
         setCheckoutID(res.payload._id)
+        handlePaymentSuccess(res.payload._id)
     }
   }
 
@@ -46,16 +47,16 @@ const Checkout = () => {
   const [lastName, setLastName] = useState('')
   const [phone, setPhone] = useState(0)
 
-  const handlePaymentSuccess = async (details) => {
+  const handlePaymentSuccess = async (id) => {
     try {
-        const response = await axios.put(`${import.meta.env.VITE_BACKEND_URL}/api/checkout/${checkoutID}/pay`, 
-            {paymentStatus: 'Đã thanh toán', paymentDetails: details}, 
+        const response = await axios.put(`${import.meta.env.VITE_BACKEND_URL}/api/checkout/${id}/pay`, 
+            {paymentStatus: 'Đã thanh toán'}, 
         {
             headers: {
                 Authorization: `Bearer ${localStorage.getItem('userToken')}`
             }
         })
-        await handleFinalizeCheckout(checkoutID)
+        await handleFinalizeCheckout(id)
     } catch (error) {
         console.log(error)
     }
@@ -170,11 +171,7 @@ const Checkout = () => {
                         />
                     </div>
                 </div>
-                {!checkoutID ? (
-                    <button className='bg-gray-700 text-white hover:bg-gray-600 transition-all duration-300 w-full px-4 py-2 cursor-pointer rounded-lg'>Thanh toán</button>
-                ) : (
-                    <PaypalButton amount={cart.totalPrice} onSuccess={handlePaymentSuccess} onError={(err) => alert('Payment failed. Try again')}/>
-                )}
+                    <button className='bg-amber-600 text-white hover:bg-amber-700 transition-all duration-300 w-full px-4 py-2 cursor-pointer rounded-lg'>Mua</button>
             </form>
         </div>
         <div className="bg-gray-50 p-6 rounded-lg">
@@ -186,8 +183,7 @@ const Checkout = () => {
                             <img src={product.image} className='w-20 h-24 object-cover mr-4' alt="" />
                             <div className="">
                                 <h3 className='text-md'>{product.name}</h3>
-                                <p className='text-gray-500'>Size: {product.size}</p>
-                                <p className='text-gray-500'>Màu: {product.color}</p>
+                                <p className='text-gray-500'>{product.author}</p>
                             </div>
                         </div>
                         <div className="">

@@ -13,21 +13,18 @@ const EditProduct = () => {
   const { selectedProduct, loading } = useSelector(
     (state) => state.adminProduct
   );
+  const { shopManager } = useSelector((state) => state.shopManager);
   const { id } = useParams();
   const [uploading, setUploading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
     price: 0,
+    countOfPage: 0,
     category: "",
-    brand: "",
-    sizes: [],
-    colors: [],
-    material: "",
-    images: [
-      "https://picsum.photos/500/500?random=1",
-      "https://picsum.photos/500/500?random=2",
-    ],
+    publishedAt: '2025-01-01',
+    author: "",
+    images: [],
     countInStock: 0,
   });
 
@@ -42,12 +39,11 @@ const EditProduct = () => {
         description: selectedProduct.description || "",
         price: selectedProduct.price || 0,
         category: selectedProduct.category || "",
-        brand: selectedProduct.brand || "",
-        sizes: selectedProduct.sizes || [],
-        colors: selectedProduct.colors || [],
-        material: selectedProduct.material || "",
+        countOfPage: selectedProduct.countOfPage || "",
+        publishedAt: new Date(selectedProduct.publishedAt).toISOString().split('T')[0] || [],
         images: selectedProduct.images || [],
         countInStock: selectedProduct.countInStock || 0,
+        author: selectedProduct.author || 0,
       });
     }
   }, [selectedProduct]);
@@ -56,27 +52,14 @@ const EditProduct = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const sizeOptions = ["S", "M", "L", "XL", "XXL"];
 
-  const handleSizeChange = (e) => {
-    const { value, checked } = e.target;
-    setFormData((prevData) => {
-      const newSizes = checked
-        ? [...prevData.sizes, value] // Thêm vào nếu được chọn
-        : prevData.sizes.filter((size) => size !== value); // Bỏ nếu bỏ chọn
-
-      return { ...prevData, sizes: newSizes };
-    });
-  };
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     const isFormInvalid = Object.values(formData).some(
           (value) =>
             value === "" ||
-            value === null ||
-            value === undefined ||
-            (Array.isArray(value) && value.length === 0)
+            value === null
         );
     
         if (isFormInvalid) {
@@ -166,6 +149,19 @@ const EditProduct = () => {
         </div>
         <div className="mb-4 w-full">
           <label className="text-sm text-gray-600 block mb-1">
+            Số trang
+          </label>
+          <input
+            name="countOfPage"
+            onChange={handleFormChange}
+            value={formData.countOfPage}
+            className="border-gray-600 border w-full p-2 rounded-lg"
+            type="number"
+            required
+          />
+        </div>
+        <div className="mb-4 w-full">
+          <label className="text-sm text-gray-600 block mb-1">
             Số lượng tồn kho
           </label>
           <input
@@ -178,66 +174,42 @@ const EditProduct = () => {
           />
         </div>
         <div className="mb-4 w-full">
-          <label className="text-sm text-gray-600 block mb-1">Thể loại</label>
+          <label className="text-sm text-gray-600 block mb-1">Ngày xuất bản</label>
           <input
-            name="category"
+            name="publishedAt"
             onChange={handleFormChange}
-            value={formData.category}
+            value={formData.publishedAt}
             className="border-gray-600 border w-full p-2 rounded-lg"
-            type="text"
+            type="date"
             required
           />
         </div>
         <div className="mb-4 w-full">
-          <label className="text-sm text-gray-600 block mb-1">Hãng</label>
-          <input
-            name="brand"
-            onChange={handleFormChange}
-            value={formData.brand}
-            className="border-gray-600 border w-full p-2 rounded-lg"
-            type="text"
-            required
-          />
-        </div>
-        <div className="mb-4 w-full">
-          <label className="text-sm text-gray-600 block mb-1">Chất liệu</label>
-          <input
-            name="material"
-            onChange={handleFormChange}
-            value={formData.material}
-            className="border-gray-600 border w-full p-2 rounded-lg"
-            type="text"
-            required
-          />
-        </div>
-        <div className="mb-4 w-full">
-          <label className="text-sm text-gray-600 block mb-1">Size</label>
-          <div className="flex gap-5 flex-wrap">
-                {sizeOptions.map((size) => (
-                  <label key={size} className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      value={size}
-                      checked={formData.sizes.includes(size)}
-                      onChange={handleSizeChange}
-                      className="accent-blue-600"
-                    />
-                    <span>{size}</span>
-                  </label>
-                ))}
+                <label className="text-sm text-gray-600 block mb-1">
+                  Thể loại
+                </label>
+                <select
+                  name="category"
+                  onChange={handleFormChange}
+                  value={formData.category || ""}
+                  className="border-gray-600 border w-full p-2 rounded-lg"
+                >
+                  <option value="" disabled>
+                    Chọn thể loại
+                  </option>
+                  {shopManager.categories.map((category) => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
+                  ))}
+                </select>
               </div>
-        </div>
         <div className="mb-4 w-full">
-          <label className="text-sm text-gray-600 block mb-1">Màu sắc (cách nhau bởi dấu ,)</label>
+          <label className="text-sm text-gray-600 block mb-1">Tác giả</label>
           <input
-            name="colors"
-            onChange={(e) => {
-              setFormData({
-                ...formData,
-                colors: e.target.value.split(",").map((color) => color.trim()),
-              });
-            }}   
-            value={formData.colors.join(",")}
+            name="author"
+            onChange={handleFormChange}
+            value={formData.author}
             className="border-gray-600 border w-full p-2 rounded-lg"
             type="text"
             required

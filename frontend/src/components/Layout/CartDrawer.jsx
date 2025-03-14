@@ -39,7 +39,7 @@ const CartDrawer = ({drawerOpen, toggleCartDrawer}) => {
               <>
               <button 
                 onClick={handleCheckout}
-                className='w-full bg-gray-800 text-white py-3 rounded-lg font-semibold hover:bg-gray-700 transition duration-300 cursor-pointer'
+                className='w-full bg-amber-600 text-white py-3 rounded-lg font-semibold hover:bg-amber-700 transition duration-300 cursor-pointer'
               >
               Thanh toán
               </button>

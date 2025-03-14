@@ -26,11 +26,10 @@ const ProductManager = () => {
     name: "",
     description: "",
     price: 0,
+    countOfPage: 0,
     category: "",
-    brand: "",
-    sizes: [],
-    colors: [],
-    material: "",
+    publishedAt: '2025-01-01',
+    author: "",
     images: [],
     countInStock: 0,
   });
@@ -42,27 +41,14 @@ const ProductManager = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const sizeOptions = ["S", "M", "L", "XL", "XXL"];
 
-  const handleSizeChange = (e) => {
-    const { value, checked } = e.target;
-    setFormData((prevData) => {
-      const newSizes = checked
-        ? [...prevData.sizes, value] // Thêm vào nếu được chọn
-        : prevData.sizes.filter((size) => size !== value); // Bỏ nếu bỏ chọn
-
-      return { ...prevData, sizes: newSizes };
-    });
-  };
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     const isFormInvalid = Object.values(formData).some(
       (value) =>
         value === "" ||
-        value === null ||
-        value === undefined ||
-        (Array.isArray(value) && value.length === 0)
+        value === null
     );
 
     if (isFormInvalid) {
@@ -78,11 +64,10 @@ const ProductManager = () => {
       name: "",
       description: "",
       price: 0,
+      countOfPage: 0,
       category: "",
-      brand: "",
-      sizes: [],
-      colors: [],
-      material: "",
+      publishedAt: '2025-01-01',
+      author: "",
       images: [],
       countInStock: 0,
     });
@@ -182,6 +167,16 @@ const ProductManager = () => {
                 />
               </div>
               <div className="mb-4 w-full">
+                <label className="text-sm text-gray-600 block mb-1">Số trang</label>
+                <input
+                  name="countOfPage"
+                  onChange={handleFormChange}
+                  value={formData.countOfPage}
+                  className="border-gray-600 border w-full p-2 rounded-lg"
+                  type="number"
+                />
+              </div>
+              <div className="mb-4 w-full">
                 <label className="text-sm text-gray-600 block mb-1">
                   Số lượng tồn kho
                 </label>
@@ -193,7 +188,18 @@ const ProductManager = () => {
                   type="number"
                 />
               </div>
-
+              <div className="mb-4 w-full">
+                <label className="text-sm text-gray-600 block mb-1">
+                  Ngày xuất bản
+                </label>
+                <input
+                  name="publishedAt"
+                  onChange={handleFormChange}
+                  value={formData.publishedAt}
+                  className="border-gray-600 border w-full p-2 rounded-lg"
+                  type="date"
+                />
+              </div>
               <div className="mb-4 w-full">
                 <label className="text-sm text-gray-600 block mb-1">
                   Thể loại
@@ -215,58 +221,11 @@ const ProductManager = () => {
                 </select>
               </div>
               <div className="mb-4 w-full">
-                <label className="text-sm text-gray-600 block mb-1">Hãng</label>
+                <label className="text-sm text-gray-600 block mb-1">Tấc giả</label>
                 <input
-                  name="brand"
+                  name="author"
                   onChange={handleFormChange}
-                  value={formData.brand}
-                  className="border-gray-600 border w-full p-2 rounded-lg"
-                  type="text"
-                />
-              </div>
-              <div className="mb-4 w-full">
-                <label className="text-sm text-gray-600 block mb-1">
-                  Chất liệu
-                </label>
-                <input
-                  name="material"
-                  onChange={handleFormChange}
-                  value={formData.material}
-                  className="border-gray-600 border w-full p-2 rounded-lg"
-                  type="text"
-                />
-              </div>
-              <div className="mb-4 w-full">
-                <label className="text-sm text-gray-600 block mb-1">Size</label>
-                <div className="flex gap-5 flex-wrap">
-                  {sizeOptions.map((size) => (
-                    <label key={size} className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        value={size}
-                        checked={formData.sizes.includes(size)}
-                        onChange={handleSizeChange}
-                        className="accent-blue-600"
-                      />
-                      <span>{size}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              <div className="mb-4 w-full">
-                <label className="text-sm text-gray-600 block mb-1">
-                  Màu sắc (cách nhau bởi dấu ,)
-                </label>
-                <input
-                  name="colors"
-                  onChange={(e) => {
-                    setFormData({
-                      ...formData,
-                      colors: e.target.value.split(",").map((color) => color.trim()),
-                    });
-                  }}                  
-                  value={formData.colors.join(",")}
+                  value={formData.author}
                   className="border-gray-600 border w-full p-2 rounded-lg"
                   type="text"
                 />

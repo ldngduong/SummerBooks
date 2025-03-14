@@ -23,10 +23,10 @@ export const fetchCart = createAsyncThunk('cart/fetchCart', async({userId, guest
     }
 })
 
-export const addToCart = createAsyncThunk('cart/addToCart', async ({productId, quantity, size, color, guestId, userId}, {rejectWithValue}) => {
+export const addToCart = createAsyncThunk('cart/addToCart', async ({productId, quantity, author, guestId, userId}, {rejectWithValue}) => {
     try {
        const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/cart`, {
-        productId, quantity, size, color, guestId, userId
+        productId, quantity, author, guestId, userId
        }) 
        return response.data
     } catch (error) {
@@ -35,10 +35,10 @@ export const addToCart = createAsyncThunk('cart/addToCart', async ({productId, q
     }
 })
 
-export const updateCartItemQuantity = createAsyncThunk('cart/updateCartItemQuantity', async ({productId, quantity, size, color, guestId, userId}, {rejectWithValue}) => {
+export const updateCartItemQuantity = createAsyncThunk('cart/updateCartItemQuantity', async ({productId, quantity, author, guestId, userId}, {rejectWithValue}) => {
     try {
        const response = await axios.put(`${import.meta.env.VITE_BACKEND_URL}/api/cart`, {
-        productId, quantity, size, color, guestId, userId
+        productId, quantity, author, guestId, userId
        }) 
        return response.data
     } catch (error) {

@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import Loading from '../components/Common/Loading'
 import { useNavigate } from 'react-router-dom';
 import { logout } from '../redux/slices/authSlice';
+import { clearCart } from '../redux/slices/cartSlice';
 
 const Profile = () => {
   const dispatch = useDispatch();
@@ -26,6 +27,7 @@ const Profile = () => {
 
   const handleLogout = () => {
     dispatch(logout());
+    dispatch(clearCart())
   };
 
   return (
@@ -37,7 +39,7 @@ const Profile = () => {
             <p className='text text-gray-600 mb-2'>Email: {user.email}</p>
             <button 
               onClick={handleLogout} 
-              className='cursor-pointer w-full bg-gray-700 text-white py-2 px-4 rounded hover:bg-gray-500 transition-all duration-300'>
+              className='cursor-pointer w-full bg-amber-600 text-white py-2 px-4 rounded hover:bg-amber-500 transition-all duration-300'>
               Đăng xuất
             </button>
           </div>

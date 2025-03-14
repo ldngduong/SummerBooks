@@ -27,10 +27,10 @@ const AdminOrderDetail = () => {
         <h1 className='text-3xl font-bold mb-6'>Quản lý đơn hàng</h1>
         <div className="flex h-full shadow-md w-full p-4 gap-3 flex-col">
             <div className="flex justify-between mb-1">
-                <p className='font-bold'>Mã đơn hàng: {orderDetails && orderDetails.id}</p>
+                <p className='font-bold'>Mã đơn hàng: {orderDetails && orderDetails._id}</p>
             </div>
             <div className="flex justify-between mb-4">
-                <p className='text-sm'>{orderDetails && new Date(orderDetails.paidAt).toLocaleDateString()}</p>
+                <p className='text-sm'>{orderDetails && new Date(orderDetails.paidAt).toLocaleDateString('vi-VN')}</p>
                 <div className="">
                     <p className={`text-gray-700 text-sm ${orderDetails && orderDetails.paidAt===false ? 'block' : 'hidden'}`}>Dự kiến giao hàng: {calculateEstimatedDelivery(orderDetails && orderDetails.createdAt)}</p>
                 </div>
@@ -38,7 +38,7 @@ const AdminOrderDetail = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                 <div className="p-2 border border-gray-500 rounded-lg">
                     <h4 className="text-lg font-semibold mb-2">Phương thức thanh toán</h4>
-                    <p className="text-gray-600 mb-2">PayPal</p>
+                    <p className="text-gray-600 mb-2">Ship COD</p>
                 </div>
                 <div className="p-2 border border-gray-500 rounded-lg">
                     <h4 className="text-lg font-semibold mb-2">Địa chỉ</h4>
@@ -54,13 +54,13 @@ const AdminOrderDetail = () => {
             <div className="flex flex-col gap-3 mb-4">
                 {orderDetails && orderDetails.orderItems.map((item)=> (
                     <div key={item.productId} className='flex items-center'>
-                        <Link to={`/product/${id}`}>
+                        <Link to={`/product/${item.productId}`}>
                             <img src={item.image} alt="" className='w-16 h-16 object-cover rounded-md mr-4'/>
                         </Link>
                         <div className="">
-                            <Link to={`/product/${id}`} className='text-md font-semibold underline text-blue-600'>{item.name}</Link>
+                            <Link to={`/product/${item.productId}`} className='text-md font-semibold underline text-blue-600'>{item.name}</Link>
                             <p className='text-sm text-gray-500'>
-                                {item.color} | {item.size}
+                                {item.author}
                             </p>
                         </div>
                         <div className="ml-auto text-right">

@@ -17,31 +17,31 @@ const getCart = async (userId, guestId) => {
 
 // post /api/cart - add product to cart - public
 router.post("/", async (req, res) => {
-  const { productId, quantity, size, color, guestId, userId } = req.body;
+
+  const { productId, quantity, author, guestId, userId } = req.body;
+  console.log({ productId, quantity, author, guestId, userId })
   try {
     const product = await Product.findById(productId);
     if (!product)
       return res.status(404).json({ message: "Không tìm thấy sản phẩm" });
 
     let cart = await getCart(userId, guestId);
-
+    
     if (cart) {
       const productIndex = cart.products.findIndex(
         (p) =>
-          p.productId.toString() === productId &&
-          p.size === size &&
-          p.color === color
+          p.productId.toString() === productId
       );
       if (productIndex > -1) {
         cart.products[productIndex].quantity += quantity;
+        cart.products[productIndex].author = author;
       } else {
         cart.products.push({
           productId,
           name: product.name,
           image: product.images[0]?.url,
           price: product.price,
-          size,
-          color,
+          author,
           quantity,
         });
       }
@@ -62,8 +62,7 @@ router.post("/", async (req, res) => {
             name: product.name,
             image: product.images[0].url,
             price: product.price,
-            size,
-            color,
+            author,
             quantity,
           },
         ],
@@ -79,7 +78,7 @@ router.post("/", async (req, res) => {
 
 // put /api/cart - edit cart quantity - public
 router.put("/", async (req, res) => {
-  const { productId, quantity, size, color, guestId, userId } = req.body;
+  const { productId, quantity, author, guestId, userId } = req.body;
 
   try {
     let cart = await getCart(userId, guestId);
@@ -89,9 +88,7 @@ router.put("/", async (req, res) => {
 
     const productIndex = cart.products.findIndex(
       (p) =>
-        p.productId.toString() === productId &&
-        p.size === size &&
-        p.color === color
+        p.productId.toString() === productId
     );
     if (productIndex > -1) {
       if (quantity > 0) {
@@ -103,6 +100,7 @@ router.put("/", async (req, res) => {
         (acc, item) => acc + item.price * item.quantity,
         0
       );
+      cart.author=author;
       await cart.save();
       return res.status(200).json(cart);
     } else {
@@ -147,8 +145,6 @@ router.post("/merge", protect, async (req, res) => {
           const productIndex = userCart.products.findIndex(
             (item) =>
               item.productId.toString() === guestItem.productId.toString()
-              && item.size === guestItem.size
-              && item.color === guestItem.color
           );
           if(productIndex > -1){
             userCart.products[productIndex].quantity += guestItem.quantity

@@ -22,7 +22,7 @@ const userSchema = new mongoose.Schema(
         },
         role: {
             type: String,
-            enum: ['Khách hàng', 'Nhân viên', 'Quản trị viên'],
+            enum: ['Khách hàng', 'Nhân viên nhập liệu', 'Nhân viên bán hàng', 'Quản trị viên'],
             default: 'Khách hàng'
         },
     },

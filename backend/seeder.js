@@ -19,7 +19,7 @@ const seedData = async () => {
         await Order.deleteMany()
         const createdUser = await User.create({
             name: 'Admin',
-            email: 'admin@theshop.com',
+            email: 'admin@summerbooks.com',
             password: '123456',
             role: 'Quản trị viên',
         })
@@ -32,11 +32,11 @@ const seedData = async () => {
 
         await Product.insertMany(sampleProducts)
         const shopManager = await ShopManager.create({
-            name: 'TheShop',
+            name: 'SummerBooks',
             categories: [
-                'Áo', 'Quần', 'Túi', 'Mũ'
+                'Sách giáo khoa', 'Tiểu thuyết', 'Từ điển', 'Sách khoa học'
             ],
-            heroImage: 'https://res.cloudinary.com/dfemfoftc/image/upload/v1741793785/zm7noykwpztvcujp176e.jpg',
+            heroImage: 'https://lh3.googleusercontent.com/proxy/LYg_haeSk9f9fG-Fk4j2dElP3sxtWNYibQoWrFOictLzRMC6G3yQ71vukxTAzTwFH-6JQTa67wwgeKmQo55ABl6HlDHBVgvj1OoE_k6SlSyVB5JqgGRNUDECl9p2G7XqHwuK7jJX6Q',
             announcement: 'Vận chuyển toàn quốc - Miễn phí vận chuyển cho đơn hàng từ 100.000vnđ',
             contact: {
                 meta: '',
@@ -45,7 +45,7 @@ const seedData = async () => {
                 tiktok: '',
                 phone: '+84865641682'
             },
-            slogan: 'Tiệm quần áo nam chất lượng với dịch vụ giao nhanh toàn quốc.'
+            slogan: 'Tiệm sách chất lượng với dịch vụ giao hàng toàn quốc.'
         })
         console.log("Seed success")
         process.exit()

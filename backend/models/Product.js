@@ -7,6 +7,11 @@ const productSchema = new mongoose.Schema(
             required: true,
             trim: true,
         },
+        author: {
+            type: String,
+            required: true,
+            trim: true,
+        },
         description: {
             type: String,
             required: true,
@@ -14,9 +19,6 @@ const productSchema = new mongoose.Schema(
         price: {
             type: Number,
             required: true,
-        },
-        discountPrice: {
-            type: Number,
         },
         countInStock: {
             type: Number,
@@ -27,19 +29,8 @@ const productSchema = new mongoose.Schema(
             type: String,
             required: true,
         },
-        brand: {
-            type: String,  
-        },
-        sizes: {
-            type: [String],
-            required: true,
-        },
-        colors: {
-            type: [String],
-            required: true,
-        },
-        material: {
-            type: String,
+        countOfPage: {
+            type: Number,  
         },
         images: [
             {
@@ -52,14 +43,6 @@ const productSchema = new mongoose.Schema(
                 },
             },
         ],
-        isFeatured: {
-            type: Boolean,
-            default: false,
-        },
-        isPublished: {
-            type: Boolean,
-            default: false,
-        },
         rating: {
             type: Number,
             default: 0,
@@ -68,27 +51,12 @@ const productSchema = new mongoose.Schema(
             type: Number,
             default: 0,
         },
-        tags: [String],
         user: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User',
             required: true
         },
-        metaTitle: {
-            type: String,
-        },
-        metaDescription: {
-            type: String,
-        },
-        metaKeywords: {
-            type: String,
-        },
-        dimensions: {
-            length: Number,
-            width: Number,
-            height: Number
-        },
-        weight: Number,
+        publishedAt: Date,
     },
     {timestamps: true}
 );

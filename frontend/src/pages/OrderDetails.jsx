@@ -42,7 +42,7 @@ const OrderDetails = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                 <div className="p-2 border border-gray-500 rounded-lg">
                     <h4 className="text-lg font-semibold mb-2">Phương thức thanh toán</h4>
-                    <p className="text-gray-600 mb-2">PayPal</p>
+                    <p className="text-gray-600 mb-2">Ship COD</p>
                 </div>
                 <div className="p-2 border border-gray-500 rounded-lg">
                     <h4 className="text-lg font-semibold mb-2">Địa chỉ</h4>
@@ -58,13 +58,13 @@ const OrderDetails = () => {
             <div className="flex flex-col gap-3 mb-4">
                 {orderDetails && orderDetails.orderItems.map((item)=> (
                     <div key={item.productId} className='flex items-center'>
-                        <Link to={`/product/${id}`}>
+                        <Link to={`/product/${item.productId}`}>
                             <img src={item.image} alt="" className='w-16 h-16 object-cover rounded-md mr-4'/>
                         </Link>
                         <div className="">
-                            <Link to={`/product/${id}`} className='text-md font-semibold text-blue-700'>{item.name}</Link>
+                            <Link to={`/product/${item.productId}`} className='text-md font-semibold text-blue-700'>{item.name}</Link>
                             <p className='text-sm text-gray-500'>
-                                {item.color} | {item.size}
+                                {item.author}
                             </p>
                         </div>
                         <div className="ml-auto text-right">

@@ -13,10 +13,6 @@ const FilterSidebar = () => {
   const navigate = useNavigate();
   const [filters, setFilters] = useState({
     category: '',
-    color: '',
-    sizes: [
-
-    ],
     sortBy: 'all'
   })
   
@@ -24,7 +20,6 @@ const FilterSidebar = () => {
 
   const categories = shopManager.categories
 
-  const sizes = ['S', 'M', 'L', 'XL', 'XXL']
 
   const handleFilterChange = (e) => {
       const {name, value, checked, type} = e.target;
@@ -64,7 +59,6 @@ const FilterSidebar = () => {
     const params = Object.fromEntries([...searchParams])
     setFilters((prevFilters) => ({
         category: params.category || prevFilters.category || '',
-        sizes: params.sizes ? params.sizes.split(',') : prevFilters.sizes || [],
     }));
   }, [searchParams])
 
@@ -108,24 +102,6 @@ const FilterSidebar = () => {
                </div> 
             ))}
             
-        </div>
-        <div className="mb-6">
-            <label htmlFor="" className="block text-gray-600 font-medium mb-2">
-                Sizes
-            </label>
-            {sizes.map((size) => (
-               <div key={size} className='flex items-center mb-1'>
-                    <input 
-                        onChange={handleFilterChange}
-                        value={size} 
-                        type="checkbox" 
-                        checked={filters.sizes.includes(size)}
-                        name='sizes' 
-                        className='mr-2 h-4 w-4 text-gray-500 focus:ring-gray-400 border-gray-300'
-                    />
-                    <span className='text-gray-700'>{size}</span>
-               </div> 
-            ))}
         </div>
     </div>
   )

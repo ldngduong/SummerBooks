@@ -1,10 +1,9 @@
 import {createSlice, createAsyncThunk} from '@reduxjs/toolkit'
 import axios from 'axios'
-import { fetchCart, mergeCart } from './cartSlice';
+import { clearCart, fetchCart, mergeCart } from './cartSlice';
 const userFromStorage = localStorage.getItem('userInfo') ? JSON.parse(localStorage.getItem('userInfo')) : null;
 const initialGuestId = localStorage.getItem('guestId') || `guest_${new Date().getTime()}`
 localStorage.setItem('guestId', initialGuestId)
-
 const initialState = {
     user: userFromStorage,
     guestId: initialGuestId,
@@ -66,6 +65,7 @@ const authSlice = createSlice({
             state.guestId = `guest_${new Date().getTime()}`
             localStorage.removeItem('userInfo')
             localStorage.removeItem('userToken')
+            clearCart()
             localStorage.setItem('guestId', state.guestId)
         },
         generateNewGuestId: (state) => {

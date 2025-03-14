@@ -34,7 +34,7 @@ const Footer = () => {
               />
               <button
                 type="submit"
-                className="cursor-pointer bg-gray-800 text-white px-2 py-1 rounded-r-md hover:bg-gray-700"
+                className="cursor-pointer bg-amber-600 text-white px-2 py-1 rounded-r-md hover:bg-gray-700"
               >
                 Đăng ký
               </button>

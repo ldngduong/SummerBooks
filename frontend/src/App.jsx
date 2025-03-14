@@ -51,7 +51,7 @@ function App() {
             </Route>
             <Route
               path="/admin"
-              element={<ProtectedRoute role="Quản trị viên"><AdminLayout /></ProtectedRoute>}
+              element={<ProtectedRoute role="admin"><AdminLayout /></ProtectedRoute>}
             >
               <Route index element={<AdminHome />} />
               <Route path="users" element={<UserManager />} />

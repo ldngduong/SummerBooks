@@ -38,26 +38,28 @@ const Navbar = () => {
             </div>
             <div className="hidden md:flex space-x-6">
                 {shopManager.categories.map((category) => (
-                    <Link to={`/collections/all?category=${category}`} className='text-gray-700 hover:text-black text-sm font-medium uppercase'>
+                    <Link to={`/collections/all?category=${category}`} className='text-gray-700 hover:text-amber-800 text-sm font-medium uppercase'>
                         {category}
                     </Link>
                 ))}
             </div>
             <div className="flex items-center space-x-4">
-                {user && user.role === 'Quản trị viên' && (
-                    <Link to='/admin' className='bg-gray-700 text-sm text-white hover:bg-gray-600 transition-all duration-300 px-2 py-1 rounded-2xl'>Admin</Link>
+                {user && (user.role === 'Quản trị viên' || user.role === 'Nhân viên bán hàng' || user.role === 'Nhân viên nhập liệu') && (
+                    <Link to='/admin' className='bg-amber-700 text-sm text-white hover:bg-amber-600 transition-all duration-300 px-2 py-1 rounded-2xl'>Admin</Link>
                 )}
                 <Link to='/profile'>
                     <HiOutlineUser className='h-6 w-6 text-gray-700 flex justify-center'/>
                 </Link>
-                <button onClick={toggleCartDrawer} className='relative hover:text-black cursor-pointer'>
-                    <HiOutlineShoppingBag className='h-6 w-6 text-gray-700' />
-                    {cartItemCount > 0 && (
-                    <span className='absolute -top-2 -right-3 bg-gray-700 text-white text-xs rounded-full px-2 py-0.5'>
-                        {cartItemCount}
-                    </span>
-                    )}
-                </button>
+                {user && (
+                    <button onClick={toggleCartDrawer} className='relative hover:text-black cursor-pointer'>
+                        <HiOutlineShoppingBag className='h-6 w-6 text-gray-700' />
+                        {cartItemCount > 0 && (
+                        <span className='absolute -top-2 -right-3 bg-gray-700 text-white text-xs rounded-full px-2 py-0.5'>
+                            {cartItemCount}
+                        </span>
+                        )}
+                    </button>
+                )}
                 <div className="overflow-hidden">
                     <SearchBar />
                 </div>

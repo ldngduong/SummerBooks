@@ -17,8 +17,9 @@ export const addUser = createAsyncThunk('adminUser/addUser', async(userData, {re
                 Authorization: `Bearer ${localStorage.getItem('userToken')}`
             }
         })
-        return response.data
         console.log(response.data)
+
+        return response.data
     } catch (error) {
         return rejectWithValue(error.response.data)
     }

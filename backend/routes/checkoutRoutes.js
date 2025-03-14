@@ -43,7 +43,7 @@ router.post("/", protect, async (req, res) => {
 
 // put /api/checkout/:id/pay - update checkout as paid - protect
 router.put('/:id/pay', protect, async(req, res) => {
-    const {paymentStatus, paymentDetails} = req.body;
+    const {paymentStatus} = req.body;
     try{
         const checkout = await Checkout.findById(req.params.id)
         if(!checkout){
@@ -52,7 +52,6 @@ router.put('/:id/pay', protect, async(req, res) => {
         if(paymentStatus === 'Đã thanh toán'){
             checkout.isPaid = true
             checkout.paymentStatus = paymentStatus
-            checkout.paymentDetails = paymentDetails
             checkout.paidAt = Date.now();
             await checkout.save()
             await Cart.findOneAndDelete({user: checkout.user})

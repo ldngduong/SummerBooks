@@ -15,6 +15,7 @@ const CheckoutItem = mongoose.Schema(
             type: String,
             required: true,
         },
+        author: String,
         price: {
             type: Number,
             required: true
@@ -23,12 +24,6 @@ const CheckoutItem = mongoose.Schema(
             type: Number,
             required: true
         },
-        color: {
-            type: String
-        },
-        size: {
-            type: String
-        }
     }, 
     {_id: false}
 );
@@ -65,9 +60,6 @@ const checkoutSchema = mongoose.Schema(
         paymentStatus: {
             type: String,
             default: "Đang chờ"
-        },
-        paymentDetails: {
-            type: mongoose.Schema.Types.Mixed,
         },
         isFinalized: {
             type: Boolean,
