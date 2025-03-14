@@ -37,7 +37,7 @@ const Register = () => {
       navigate("/");
     }
   }, [user, navigate]);
-  if(shopManager){
+  if(!shopManager){
     return <FullLoading />
   }
   return (
