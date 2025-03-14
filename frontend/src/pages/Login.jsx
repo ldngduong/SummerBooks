@@ -5,9 +5,10 @@ import {loginUser} from '../redux/slices/authSlice'
 import { fetchCart, mergeCart } from '../redux/slices/cartSlice'
 import { toast } from 'sonner'
 import { useDispatch, useSelector } from 'react-redux';
-
+import FullLoading from '../components/Common/FullLoading'
 const Login = () => {
   const { user, loading } = useSelector((state) => state.auth);
+  const { shopManager } = useSelector((state) => state.shopManager);
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const dispatch = useDispatch();
@@ -31,13 +32,15 @@ const Login = () => {
         navigate('/')
     }
     }, [user, navigate]);
-
+  if(shopManager){
+    return <FullLoading />
+  }
   return (
     <div className='flex'>
       <div className="w-full md:w-1/2 flex flex-col justify-center items-center p-8 md:p-12">
         <form onSubmit={handleSubmit} className='w-full max-w-md bg-white p-8 rounded-lg border shadow-sm'>
             <div className="flex justify-center mb-6">
-                <h2 className='text-xl font-medium'>TheShop</h2>
+                <h2 className='text-xl font-medium'>{shopManager.name}</h2>
             </div>
             <h2 className='text-2xl font-bold text-center mb-6'>Đăng nhập</h2>
             <div className="mb-4">

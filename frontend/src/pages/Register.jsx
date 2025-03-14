@@ -8,6 +8,8 @@ import Loading from "../components/Common/Loading";
 
 const Register = () => {
   const { user, loading } = useSelector((state) => state.auth);
+    const { shopManager } = useSelector((state) => state.shopManager);
+
   const navigate = useNavigate()
 
   const [email, setEmail] = useState("");
@@ -35,7 +37,9 @@ const Register = () => {
       navigate("/");
     }
   }, [user, navigate]);
-
+  if(shopManager){
+    return <FullLoading />
+  }
   return (
     <div className="flex">
       <div className="w-full md:w-1/2 flex flex-col justify-center items-center p-8 md:p-12">
