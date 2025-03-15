@@ -58,7 +58,7 @@ const AdminSidebar = ({toggleSidebar, isSidebarOpen}) => {
                             Quản lý người dùng
                         </NavLink>
                     )}
-                    {(user.role === 'Quản trị viên' || user.role === 'Nhân viên nhập liệu') && (
+                    {(user.role === 'Quản trị viên' || user.role === 'Nhân viên bán hàng') && (
                         <NavLink 
                         className={({ isActive }) => 
                             `text-lg rounded-lg font-semibold text-white my-3 flex gap-2 items-center 
@@ -70,7 +70,7 @@ const AdminSidebar = ({toggleSidebar, isSidebarOpen}) => {
                             Quản lý đơn hàng
                         </NavLink>
                     )}
-                    {(user.role === 'Nhân viên bán hàng' || user.role === 'Quản trị viên') && (
+                    {(user.role === 'Nhân viên nhập liệu' || user.role === 'Quản trị viên') && (
                         <NavLink 
                         className={({ isActive }) => 
                             `text-lg rounded-lg font-semibold text-white my-3 flex gap-2 items-center 
