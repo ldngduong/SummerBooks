@@ -14,6 +14,7 @@ const ProductsDetails = ({id}) => {
   const {user, guestId} = useSelector((state) => state.auth)
   const {id: paramId} = useParams()
   const productId = id || paramId
+  
   useEffect(() => {
     if (productId) {
       dispatch(fetchSimilarProducts(productId));

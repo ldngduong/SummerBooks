@@ -85,14 +85,16 @@ const OrderManager = () => {
                                 <th onClick={()=>{navigate(`/admin/orders/${order._id}`)}} className='px-4 py-3 cursor-pointer text-blue-600 underline'>{order._id.substring(0,3)}...{order._id.substring(order._id.length-4)}</th>
                                 <th className='px-4 py-3'>{order.name}</th>
                                 <th className='px-4 py-3'>{order.phone}</th>
-                                <th className={`px-4 py-3`}>
-                                    <select value={order.status} onChange={(e) => {handleStatusChange(order._id, e)}} className='px-2 py-1 rounded-md border border-gray-500' name="status" id="">
-                                        <option value="Chờ duyệt">Chờ duyệt</option>
-                                        <option value="Đang giao">Đang giao</option>
-                                        <option value="Đã giao">Đã giao</option>
-                                        <option value="Đã hủy">Đã hủy</option>
-                                    </select>
-                                </th>
+                                {(order.status === 'Chờ duyệt' || order.status === 'Đang giao') && (
+                                    <th className={`px-4 py-3`}>
+                                        <select value={order.status} onChange={(e) => {handleStatusChange(order._id, e)}} className='px-2 py-1 rounded-md border border-gray-500' name="status" id="">
+                                            <option value="Chờ duyệt">Chờ duyệt</option>
+                                            <option value="Đang giao">Đang giao</option>
+                                            <option value="Đã giao">Đã giao</option>
+                                            <option value="Đã hủy">Đã hủy</option>
+                                        </select>
+                                    </th>
+                                )}
                                 <th className='px-4 py-3'>{new Date(order.paidAt).toLocaleDateString()}</th>
                             </tr>
                         ))) : (
