@@ -7,6 +7,7 @@ import { createCheckout } from '../../redux/slices/checkoutSlice';
 import Loading from '../Common/Loading'
 import axios from 'axios';
 const Checkout = () => {
+  const [load, setLoad] = useState(false)
   const navigate = useNavigate()
   const dispatch = useDispatch()
   const [checkoutID, setCheckoutID] = useState(null)
@@ -22,6 +23,7 @@ const Checkout = () => {
 
   const handleCreateCheckout = async (e) => {
     e.preventDefault()
+    setLoad(true)
     if (cart && cart.products.length > 0){
         const res = await dispatch(createCheckout({
             checkoutItems: cart.products,
@@ -32,7 +34,8 @@ const Checkout = () => {
             phone: phone
         }))
         setCheckoutID(res.payload._id)
-        handlePaymentSuccess(res.payload._id)
+        await handlePaymentSuccess(res.payload._id)
+        setLoad(false)
     }
   }
 
@@ -171,7 +174,7 @@ const Checkout = () => {
                         />
                     </div>
                 </div>
-                    <button className='bg-amber-600 text-white hover:bg-amber-700 transition-all duration-300 w-full px-4 py-2 cursor-pointer rounded-lg'>Mua</button>
+                {load ? (<Loading />) : (<button className='bg-amber-600 text-white hover:bg-amber-700 border-none transition-all duration-300 w-full px-4 py-2 cursor-pointer rounded-lg'>Mua</button>)}
             </form>
         </div>
         <div className="bg-gray-50 p-6 rounded-lg">
