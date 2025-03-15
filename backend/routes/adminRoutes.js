@@ -110,6 +110,9 @@ const router = express.Router()
             }
     
             if (status) {
+                if(order.status === 'Đã giao' || order.status === 'Đã hủy'){
+                    return res.status(500).json({ message: "Lỗi server" });
+                }
                 order.status = status;
                 order.isDelivered = status === 'Đã giao' ? true : false
                 order.deliveredAt = status === 'Đã giao' ? Date.now() : null
