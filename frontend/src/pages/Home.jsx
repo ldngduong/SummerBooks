@@ -4,6 +4,7 @@ import NewArrival from '../components/Products/NewArrival'
 import ProductsDetails from '../components/Products/ProductsDetails'
 import { useSelector, useDispatch } from 'react-redux'
 import { fetchBestSeller } from '../redux/slices/productsSlice'
+import Loading from '../components/Common/Loading'
 
 const Home = () => {
     const dispatch = useDispatch()
@@ -17,7 +18,7 @@ const Home = () => {
         <Hero />
         <NewArrival />
         <h2 className='text-3xl text-center font-bold mb-4'>Best Seller</h2>
-        {bestSeller && <ProductsDetails id={bestSeller._id}  />}
+        {bestSeller ? <ProductsDetails id={bestSeller._id} /> : <Loading />}
     </>
   )
 }

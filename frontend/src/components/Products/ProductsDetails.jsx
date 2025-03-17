@@ -5,10 +5,11 @@ import { useSelector, useDispatch } from 'react-redux'
 import ProductGrid from './ProductGrid'
 import { fetchProductDetails, fetchSimilarProducts } from '../../redux/slices/productsSlice'
 import Loading from '../Common/Loading'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { addToCart } from '../../redux/slices/cartSlice'
 
 const ProductsDetails = ({id}) => {
+    const navigate = useNavigate()
   const dispatch = useDispatch()
   const {similarProducts, selectedProduct, loading, error} = useSelector((state) => state.product)
   const {user, guestId} = useSelector((state) => state.auth)
@@ -33,21 +34,25 @@ const ProductsDetails = ({id}) => {
     if(selectedProduct?.images?.length > 0){
         setMainImage(selectedProduct.images[0].url)
     }
+
   }, [selectedProduct])
 
   const handleQuatityChange = (action) => {
-    if(action === 'plus') setSelectedQuantity((prev) => prev+1)
+    if(action === 'plus'){
+        if(selectedQuantity + 1 > selectedProduct?.countInStock){
+            return toast.error('Số lượng sách trong kho không đủ!')
+        }
+        setSelectedQuantity((prev) => prev+1)
+    } 
     if(action === 'minus' && selectedQuantity > 1) setSelectedQuantity((prev) => prev-1)
   }
 
   const handleAddToCart = () => {
-    console.log({
-        productId,
-        quantity: selectedQuantity,
-        userId: user?._id,
-        guestId,
-        author: selectedProduct.author
-    })
+    if(!user){
+        navigate('/login')
+        return toast.error('Vui lòng đăng nhập để mua hàng!')
+    }
+
     setIsButtonDisabled(true)
     dispatch(addToCart({
         productId,
@@ -105,7 +110,7 @@ const ProductsDetails = ({id}) => {
                     <h1 className='text-2xl md:text-3xl font-bold mb-2'>{selectedProduct?.name}</h1>
                     <p className='text-lg text-gray-600 mb-1'>{selectedProduct?.author}</p>
                     <p className='text-sm text-gray-600 mb'>Số trang: {selectedProduct?.countOfPage}</p>
-                    <p className='text-sm text-gray-600 mb'>Kho: {selectedProduct?.countOfPage}</p>
+                    <p className='text-sm text-gray-600 mb'>Kho: {selectedProduct?.countInStock}</p>
                     <p className='text-sm text-gray-600 mb'>Đánh giá: {selectedProduct?.rating}</p>
                     <p className='text-sm text-gray-600 mb-1'>Xuất bản: {new Date(selectedProduct?.publishedAt).toLocaleDateString('vi-VN')}</p>
                     <p className='text-xl text-gray-600 mb-4 font-semibold'>{selectedProduct?.price} vnđ</p>
@@ -119,6 +124,7 @@ const ProductsDetails = ({id}) => {
                         </div>
                     </div>
 
+                    {selectedProduct?.countInStock !== 0 ? (
                     <button 
                         disabled={isButtonDisabled}
                         onClick={handleAddToCart}
@@ -126,6 +132,14 @@ const ProductsDetails = ({id}) => {
                     >
                         {isButtonDisabled ? 'Đang thêm vào giỏ hàng...' : 'Thêm vào giỏ hàng'}
                     </button>
+                    ) : (
+                    <button 
+                        disabled
+                        className={`bg-gray-600 text-white py-2 px-6 rounded w-full mb-4 hover:bg-gray-700 cursor-pointer transition-all duration-300 ${isButtonDisabled ? 'cursor-not-allowed opacity-50' : ''}`}
+                    >
+                        Hết hàng
+                    </button>
+                    )}
                 </div>
             </div>
             <div className="mt-20">

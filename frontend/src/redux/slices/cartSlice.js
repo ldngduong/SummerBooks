@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import { toast } from "sonner";
+import { fetchProductDetails } from "./productsSlice";
 
 const loadCartFromStorage = () => {
     const storedCart = localStorage.getItem('cart')
@@ -37,6 +38,10 @@ export const addToCart = createAsyncThunk('cart/addToCart', async ({productId, q
 
 export const updateCartItemQuantity = createAsyncThunk('cart/updateCartItemQuantity', async ({productId, quantity, author, guestId, userId}, {rejectWithValue}) => {
     try {
+       const product = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/products/${productId}`)
+       if(quantity > product.data.countInStock){
+            return rejectWithValue({ message: 'Số lượng sách trong kho không đủ!' });
+        }
        const response = await axios.put(`${import.meta.env.VITE_BACKEND_URL}/api/cart`, {
         productId, quantity, author, guestId, userId
        }) 
@@ -117,7 +122,9 @@ const cartSlice = createSlice({
 
         }).addCase(updateCartItemQuantity.rejected, (state, action) => {
             state.loading = false
-            state.error = action.error.message || 'Lỗi'
+            state.error = action.payload?.message || "Lỗi";
+            toast.error(state.error); // Hiển thị thông báo lỗi
+
         })
         // mergecart
         .addCase(mergeCart.pending, (state) => {
