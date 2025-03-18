@@ -91,7 +91,7 @@ const Checkout = () => {
   return (
     <div className='flex flex-col-reverse lg:grid lg:grid-cols-2 gap-8 max-w-7xl mx-auto py-10 px-6'>
         <div className="bg-white rounded-lg p-1">
-            <h2 className='text-2xl uppercase mb-6'>Thanh toán</h2>
+            <h2 className='text-2xl uppercase mb-6'>Đặt hàng</h2>
             <form onSubmit={handleCreateCheckout} className=''>
                 <h3 className='text-lg mb-4'>Thông tin</h3>
                 <div className="mb-4">
