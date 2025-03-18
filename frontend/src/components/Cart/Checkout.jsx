@@ -174,7 +174,7 @@ const Checkout = () => {
                         />
                     </div>
                 </div>
-                {load ? (<Loading />) : (<button className='bg-amber-600 text-white hover:bg-amber-700 border-none transition-all duration-300 w-full px-4 py-2 cursor-pointer rounded-lg'>Mua</button>)}
+                {load ? (<Loading />) : (<button className='bg-amber-600 text-white hover:bg-amber-700 border-none transition-all duration-300 w-full px-4 py-2 cursor-pointer rounded-lg'>Đặt hàng</button>)}
             </form>
         </div>
         <div className="bg-gray-50 p-6 rounded-lg">

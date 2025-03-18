@@ -41,7 +41,7 @@ const CartDrawer = ({drawerOpen, toggleCartDrawer}) => {
                 onClick={handleCheckout}
                 className='w-full bg-amber-600 text-white py-3 rounded-lg font-semibold hover:bg-amber-700 transition duration-300 cursor-pointer'
               >
-              Thanh toán
+              Mua ngay
               </button>
              <p className='text-xs text-gray-600 mt-2 text-center'>Phí vận chuyển và mã giảm giá sẽ được tính khi thanh toán.</p>
             </>

@@ -65,7 +65,7 @@ const ProductsDetails = ({id}) => {
         setIsButtonDisabled(false)
     })
   }
-  if (loading) {
+  if (loading || !selectedProduct || !similarProducts) {
     return <Loading />;
   }
 

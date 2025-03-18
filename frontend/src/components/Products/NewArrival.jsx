@@ -65,7 +65,7 @@ const NewArrival = () => {
     <section className='py-16'>
       <div className="container mx-auto text-center mb-10 relative px-8">
         <h2 className='text-3xl font-bold mb-4'>Hàng mới về</h2>
-        <p className='text-lg text-gray-700 mb-4'>Khám phá những phong cách mới nhất, biến tủ quần áo của bạn thành một sàn diễn thời trang.</p>
+        <p className='text-lg text-gray-700 mb-4'>Khám phá cuốn sách mới nhất, mở ra nguồn tri thức mới lạ.</p>
         <div className="w-full flex justify-end space-x-2">
           <button onClick={() => scroll('left')} disabled={!canScrollLeft} className={`${canScrollLeft ? 'bg-white' : 'bg-gray-200'} cursor-pointer p-2 rounded-full border text-black`}>
               <FiChevronLeft className='text-2xl' />
