@@ -46,11 +46,20 @@ const ProductManager = () => {
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     const isFormInvalid = Object.values(formData).some(
-      (value) =>
-        value === "" ||
-        value === null
-    );
-
+      (value) => value === "" || value === null
+    ) || formData.images.length === 0;
+    if(formData.countInStock < 0){
+      toast.error("Số lượng tồn kho không hợp lệ!");
+      return;
+    }
+    if(formData.countOfPage < 0){
+      toast.error("Số lượng trang không hợp lệ!");
+      return;
+    }
+    if(formData.price < 0){
+      toast.error("Giá bán không hợp lệ!");
+      return;
+    }
     if (isFormInvalid) {
       toast.error("Vui lòng điền đầy đủ thông tin!");
       return;
