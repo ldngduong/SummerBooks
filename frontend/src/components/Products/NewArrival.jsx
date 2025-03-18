@@ -4,6 +4,10 @@ import { Link } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
 import { fetchNewArrival } from '../../redux/slices/productsSlice'
 import Loading from '../Common/Loading'
+
+import Skeleton from 'react-loading-skeleton'
+import 'react-loading-skeleton/dist/skeleton.css'
+
 const NewArrival = () => {
   const dispatch = useDispatch()
   const {newArrivalProducts, loading, error} = useSelector((state) => state.product)
@@ -66,27 +70,29 @@ const NewArrival = () => {
       <div className="container mx-auto text-center mb-10 relative px-8">
         <h2 className='text-3xl font-bold mb-4'>Hàng mới về</h2>
         <p className='text-lg text-gray-700 mb-4'>Khám phá cuốn sách mới nhất, mở ra nguồn tri thức mới lạ.</p>
-        <div className="w-full flex justify-end space-x-2">
-          <button onClick={() => scroll('left')} disabled={!canScrollLeft} className={`${canScrollLeft ? 'bg-white' : 'bg-gray-200'} cursor-pointer p-2 rounded-full border text-black`}>
-              <FiChevronLeft className='text-2xl' />
-          </button>
-          <button onClick={() => scroll('right')} disabled={!canScrollRight} className={`${canScrollRight ? 'bg-white' : 'bg-gray-200'} cursor-pointer p-2 rounded-full border text-black`}>
-              <FiChevronRight className='text-2xl' />
-          </button>
-        </div>
       </div>
-      <div ref={scrollRef} onMouseDown={handleOnMouseDown} onMouseUp={handleOnMouseUpOrLeave} onMouseMove={handleOnMouseMove} className=" hide-scrollbar container mx-auto overflow-x-scroll flex space-x-5 px-8 rounded-2xl">
-        {newArrivalProducts && newArrivalProducts.map((product) => (
-          <div className="flex-none w-[250px] h-[250px] sm:w-[350px] sm:h-[350px] relative" key={product.id}>
-            <img className='w-full h-full object-cover rounded-2xl' draggable='false' src={product.images[0].url} alt="" />
-            <div className="absolute bottom-0 left-0 right-0 backdrop-blur-md text-white p-4 rounded-b-2xl">
-              <Link to={`/product/${product._id}`} className='block'>
-                <h4 className='font-medium'>{product.name}</h4>
-                <p className='mt-1'>{product.price} vnđ</p>
-              </Link>
+
+      <div className="container mx-auto flex space-x-5 px-8 rounded-2xl overflow-x-auto hide-scrollbar">
+        {loading ? (
+          // Hiển thị skeleton thay thế danh sách sản phẩm khi loading
+          [...Array(5)].map((_, index) => (
+            <div key={index} className="flex-none w-[250px] h-[250px] sm:w-[350px] sm:h-[350px]">
+              <Skeleton height="100%" borderRadius={16} />
             </div>
-          </div>
-        ))}
+          ))
+        ) : (
+          newArrivalProducts.map((product) => (
+            <div className="flex-none w-[250px] h-[250px] sm:w-[350px] sm:h-[350px] relative" key={product.id}>
+              <img className='w-full h-full object-cover rounded-2xl' draggable='false' src={product.images[0].url} alt="" />
+              <div className="absolute bottom-0 left-0 right-0 backdrop-blur-md text-white p-4 rounded-b-2xl">
+                <Link to={`/product/${product._id}`} className='block'>
+                  <h4 className='font-medium'>{product.name}</h4>
+                  <p className='mt-1'>{product.price} vnđ</p>
+                </Link>
+              </div>
+            </div>
+          ))
+        )}
       </div>
     </section>
   )
