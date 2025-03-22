@@ -68,23 +68,32 @@ router.put('/:id/pay', protect, async(req, res) => {
 })
 
 // post /api/checkout/:id/finalize - convert to order if checkout is paid - protect
-router.post('/finalize', protect, async(req, res) => {
-    try {
-      const {user, orderItems, shippingAddress, totalPrice, name, phone} = req.body
+router.post('/finalize', protect, async (req, res) => {
+  try {
+      const { user, orderItems, shippingAddress, totalPrice, name, phone } = req.body;
+
+      if (!Array.isArray(orderItems) || orderItems.length === 0) {
+          return res.status(400).json({ message: "Danh sách sản phẩm không hợp lệ!" });
+      }
+
+      // Tạo đơn hàng mới
       const newOrder = await Order.create({
-            user,
-            orderItems,
-            shippingAddress,
-            totalPrice,
-            paidAt: new Date().toLocaleDateString(),
-            isDelivered : false,
-            name,
-            phone,
-        })
-    } catch (error) {
-        console.log(error)
-        res.status(500).json({message: "Lỗi server"})
-    }
-})
+          user,
+          orderItems,
+          shippingAddress,
+          totalPrice,
+          paidAt: new Date().toISOString(), // Chuẩn hóa định dạng ngày
+          isDelivered: false,
+          name,
+          phone,
+      });
+
+      res.json({ message: "Thành công", orderId: newOrder._id }); // Giảm tải server
+  } catch (error) {
+      console.error("❌ Lỗi khi tạo đơn hàng:", error);
+      res.status(500).json({ message: "Lỗi server", error: error.message });
+  }
+});
+
 
 module.exports = router
