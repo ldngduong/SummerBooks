@@ -1,11 +1,11 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-export const createCheckout = createAsyncThunk('checkout/createCheckout', async(checkoutData, {rejectWithValue}) => {
+export const createOrder = createAsyncThunk('checkout/createOrder', async(checkoutData, {rejectWithValue}) => {
     const userToken = localStorage.getItem('userToken')
     try {
          console.log(checkoutData)
-        const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/checkout`, checkoutData, {
+        const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/checkout/finalize`, checkoutData, {
             headers: {
                 Authorization: `Bearer ${localStorage.getItem('userToken')}`
             }

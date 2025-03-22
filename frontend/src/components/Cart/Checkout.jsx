@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { FaCcPaypal } from "react-icons/fa";
 import PaypalButton from './PaypalButton';
 import {useDispatch, useSelector} from 'react-redux'
-import { createCheckout } from '../../redux/slices/checkoutSlice';
+import { createCheckout, createOrder } from '../../redux/slices/checkoutSlice';
 import Loading from '../Common/Loading'
 import axios from 'axios';
 const Checkout = () => {
@@ -25,14 +25,7 @@ const Checkout = () => {
     e.preventDefault()
     setLoad(true)
     try {
-        const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/checkout/finalize`, 
-            {user: user._id, orderItems: cart.cart, shippingAddress, totalPrice: cart.totalPrice, name: firstName + " " + lastName, phone}, 
-        {
-            headers: {
-                Authorization: `Bearer ${localStorage.getItem('userToken')}`
-            }
-        })
-        console.log(`finalized checkout`)
+        dispatch(createOrder({user: user._id, orderItems: cart.cart, shippingAddress, totalPrice: cart.totalPrice, name: firstName + " " + lastName, phone}))
         navigate('/order-confirmation')
     } catch (error) {
         console.log(error)
