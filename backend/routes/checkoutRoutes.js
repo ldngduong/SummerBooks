@@ -88,7 +88,7 @@ router.post('/finalize', protect, async (req, res) => {
           phone,
       });
 
-      res.json({ message: "Thành công", orderId: newOrder._id }); // Giảm tải server
+      res.status(201).json(newOrder);
   } catch (error) {
       console.error("❌ Lỗi khi tạo đơn hàng:", error);
       res.status(500).json({ message: "Lỗi server", error: error.message });
