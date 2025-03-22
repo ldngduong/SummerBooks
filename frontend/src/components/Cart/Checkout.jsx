@@ -21,20 +21,22 @@ const Checkout = () => {
   }, [cart, navigate])
   
 
-  const handleCreateCheckout = async (e) => {
+  const handleCreateOrder = async (e) => {
     e.preventDefault()
     setLoad(true)
-    if (cart && cart.products.length > 0){
-        const res = await dispatch(createCheckout({
-            checkoutItems: cart.products,
-            shippingAddress,
-            paymentMethod: 'Ship COD',
-            totalPrice: cart.totalPrice,
-            name: firstName + ' ' + lastName,
-            phone: phone
-        }))
-        setCheckoutID(res.payload._id)
-        await handlePaymentSuccess(res.payload._id)
+    try {
+        const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/checkout/finalize`, 
+            {user: user._id, orderItems: cart.cart, shippingAddress, totalPrice: cart.totalPrice, name: firstName + " " + lastName, phone}, 
+        {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('userToken')}`
+            }
+        })
+        console.log(`finalized checkout`)
+        navigate('/order-confirmation')
+    } catch (error) {
+        console.log(error)
+    } finally {
         setLoad(false)
     }
   }
@@ -50,37 +52,7 @@ const Checkout = () => {
   const [lastName, setLastName] = useState('')
   const [phone, setPhone] = useState(0)
 
-  const handlePaymentSuccess = async (id) => {
-    try {
-        const response = await axios.put(`${import.meta.env.VITE_BACKEND_URL}/api/checkout/${id}/pay`, 
-            {paymentStatus: 'Đã thanh toán'}, 
-        {
-            headers: {
-                Authorization: `Bearer ${localStorage.getItem('userToken')}`
-            }
-        })
-        await handleFinalizeCheckout(id)
-    } catch (error) {
-        console.log(error)
-    }
-    navigate('/order-confirmation')
-  }
-
-  const handleFinalizeCheckout = async (checkoutId) => {
-    try {
-        const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/checkout/${checkoutId}/finalize`, 
-            {}, 
-        {
-            headers: {
-                Authorization: `Bearer ${localStorage.getItem('userToken')}`
-            }
-        })
-        console.log(`finalized checkout ${checkoutID}`)
-        navigate('/order-confirmation')
-    } catch (error) {
-        console.log(error)
-    }
-  }
+  
   if(loading){
     return <Loading />
   }
@@ -92,7 +64,7 @@ const Checkout = () => {
     <div className='flex flex-col-reverse lg:grid lg:grid-cols-2 gap-8 max-w-7xl mx-auto py-10 px-6'>
         <div className="bg-white rounded-lg p-1">
             <h2 className='text-2xl uppercase mb-6'>Đặt hàng</h2>
-            <form onSubmit={handleCreateCheckout} className=''>
+            <form onSubmit={handleCreateOrder} className=''>
                 <h3 className='text-lg mb-4'>Thông tin</h3>
                 <div className="mb-4">
                     <label htmlFor="" className='block text-gray-700'>Email</label>
