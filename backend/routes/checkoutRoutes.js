@@ -76,21 +76,20 @@ router.post('/finalize', protect, async (req, res) => {
           return res.status(400).json({ message: "Danh sách sản phẩm không hợp lệ!" });
       }
 
-      // Tạo đơn hàng mới
       const newOrder = await Order.create({
           user,
           orderItems,
           shippingAddress,
           totalPrice,
-          paidAt: new Date().toISOString(), // Chuẩn hóa định dạng ngày
+          paidAt: new Date().toISOString(),
           isDelivered: false,
           name,
           phone,
       });
+      await Cart.findOneAndDelete({ user});
 
-      res.status(201).json(newOrder);
   } catch (error) {
-      console.error("❌ Lỗi khi tạo đơn hàng:", error);
+      console.error("Lỗi khi tạo đơn hàng:", error);
       res.status(500).json({ message: "Lỗi server", error: error.message });
   }
 });
