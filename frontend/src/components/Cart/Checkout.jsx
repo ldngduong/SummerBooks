@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FaCcPaypal } from "react-icons/fa";
-import PaypalButton from './PaypalButton';
 import {useDispatch, useSelector} from 'react-redux'
-import { createCheckout, createOrder } from '../../redux/slices/checkoutSlice';
+import { createOrder } from '../../redux/slices/checkoutSlice';
 import Loading from '../Common/Loading'
 import axios from 'axios';
 const Checkout = () => {
@@ -25,8 +23,9 @@ const Checkout = () => {
     e.preventDefault()
     setLoad(true)
     try {
-        dispatch(createOrder({user: user._id, orderItems: cart.cart, shippingAddress, totalPrice: cart.totalPrice, name: firstName + " " + lastName, phone}))
+        await dispatch(createOrder({user: user._id, orderItems: cart.products, shippingAddress, totalPrice: cart.totalPrice, name: firstName + " " + lastName, phone}))
         navigate('/order-confirmation')
+
     } catch (error) {
         console.log(error)
     } finally {

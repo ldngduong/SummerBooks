@@ -1,7 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import { toast } from "sonner";
-import { fetchProductDetails } from "./productsSlice";
 
 const loadCartFromStorage = () => {
     const storedCart = localStorage.getItem('cart')
@@ -12,10 +11,10 @@ const saveCartToStorage = (cart) => {
     localStorage.setItem('cart', JSON.stringify(cart))
 }
 
-export const fetchCart = createAsyncThunk('cart/fetchCart', async({userId, guestId}, {rejectWithValue}) => {
+export const fetchCart = createAsyncThunk('cart/fetchCart', async(userId, {rejectWithValue}) => {
     try{
         const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/cart`, {
-            params: {userId, guestId}
+            params: {userId}
         })
         return response.data
     } catch(error){
@@ -24,10 +23,10 @@ export const fetchCart = createAsyncThunk('cart/fetchCart', async({userId, guest
     }
 })
 
-export const addToCart = createAsyncThunk('cart/addToCart', async ({productId, quantity, author, guestId, userId}, {rejectWithValue}) => {
+export const addToCart = createAsyncThunk('cart/addToCart', async ({productId, quantity, author, userId}, {rejectWithValue}) => {
     try {
        const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/cart`, {
-        productId, quantity, author, guestId, userId
+        productId, quantity, author, userId
        }) 
        return response.data
     } catch (error) {
@@ -36,30 +35,14 @@ export const addToCart = createAsyncThunk('cart/addToCart', async ({productId, q
     }
 })
 
-export const updateCartItemQuantity = createAsyncThunk('cart/updateCartItemQuantity', async ({productId, quantity, author, guestId, userId}, {rejectWithValue}) => {
+export const updateCartItemQuantity = createAsyncThunk('cart/updateCartItemQuantity', async ({productId, quantity, author, userId}, {rejectWithValue}) => {
     try {
        const product = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/products/${productId}`)
        if(quantity > product.data.countInStock){
             return rejectWithValue({ message: 'Số lượng sách trong kho không đủ!' });
         }
        const response = await axios.put(`${import.meta.env.VITE_BACKEND_URL}/api/cart`, {
-        productId, quantity, author, guestId, userId
-       }) 
-       return response.data
-    } catch (error) {
-        console.log(error)
-        return rejectWithValue(error.response.data)
-    }
-})
-
-export const mergeCart = createAsyncThunk('cart/mergeCart', async ({guestId, user}, {rejectWithValue}) => {
-    try {
-       const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/cart/merge`, {
-        guestId, user
-       }, {
-        headers: {
-            Authorization: `Bearer ${localStorage.getItem('userToken')}`
-        }
+        productId, quantity, author, userId
        }) 
        return response.data
     } catch (error) {
@@ -123,22 +106,8 @@ const cartSlice = createSlice({
         }).addCase(updateCartItemQuantity.rejected, (state, action) => {
             state.loading = false
             state.error = action.payload?.message || "Lỗi";
-            toast.error(state.error); // Hiển thị thông báo lỗi
+            toast.error(state.error); 
 
-        })
-        // mergecart
-        .addCase(mergeCart.pending, (state) => {
-            state.loading = true
-            state.error = null
-        })
-        .addCase(mergeCart.fulfilled, (state, action) => {
-            state.loading = false
-            state.cart = action.payload
-            saveCartToStorage(state.cart);
-
-        }).addCase(mergeCart.rejected, (state, action) => {
-            state.loading = false
-            state.error = action.error.message || 'Lỗi'
         })
     }
 })

@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import loginImg from '../assets/login.jpg'
 import {loginUser} from '../redux/slices/authSlice'
-import { fetchCart, mergeCart } from '../redux/slices/cartSlice'
 import { toast } from 'sonner'
 import { useDispatch, useSelector } from 'react-redux';
 import FullLoading from '../components/Common/FullLoading'

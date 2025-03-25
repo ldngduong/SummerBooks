@@ -25,10 +25,10 @@ const MyOrders = () => {
             {orders && orders.length >0 ? (
                 orders.map((order)=>(
                     <div className='flex gap-4 shadow rounded-2xl p-3'>
-                        <img src={order.orderItems[0].image} className='h-23 w-23 rounded-2xl' alt="" />
+                        <img src={order?.orderItems[0]?.image} className='h-23 w-23 rounded-2xl' alt="" />
                         <div className="flex flex-col justify-between grow">
                             <div className="">
-                                <p className='text-gray-600 font-medium'>{order.orderItems[0].name}</p>
+                                <p className='text-gray-600 font-medium'>{order?.orderItems[0]?.name}</p>
                                 <p className={`${order.orderItems.length > 1 ? 'block' : 'hidden'} text-gray-600 text-sm`}>và {order.orderItems.length - 1} sản phẩm khác</p>
                             </div>
                             <div className="">
