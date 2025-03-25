@@ -23,6 +23,23 @@ export const fetchCart = createAsyncThunk('cart/fetchCart', async(userId, {rejec
     }
 })
 
+export const checkout = createAsyncThunk('cart/checkout', async(checkoutData, {rejectWithValue}) => {
+    const userToken = localStorage.getItem('userToken')
+    try {
+         console.log(checkoutData)
+        const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/cart/checkout`, checkoutData, {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('userToken')}`
+            }
+        })
+        return response.data
+    } catch (error) {
+        console.log(userToken, 'ok')
+
+        return rejectWithValue(error.response?.data || { message: "Lỗi không xác định" });
+    }
+})
+
 export const addToCart = createAsyncThunk('cart/addToCart', async ({productId, quantity, author, userId}, {rejectWithValue}) => {
     try {
        const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/cart`, {
@@ -54,6 +71,7 @@ export const updateCartItemQuantity = createAsyncThunk('cart/updateCartItemQuant
 const cartSlice = createSlice({
     name: 'cart',
     initialState: {
+        checkout: null,
         cart: loadCartFromStorage(),
         loading: false,
         error: null
@@ -107,7 +125,19 @@ const cartSlice = createSlice({
             state.loading = false
             state.error = action.payload?.message || "Lỗi";
             toast.error(state.error); 
-
+        })
+        // checkout cart
+        .addCase(checkout.pending, (state) => {
+            state.loading = true
+            state.error = null
+        })
+        .addCase(checkout.fulfilled, (state, action) => {
+            state.loading = false
+            state.checkout = action.payload
+        })
+        .addCase(checkout.rejected, (state, action) => {
+            state.loading = false
+            state.error = action.payload
         })
     }
 })

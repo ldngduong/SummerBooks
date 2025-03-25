@@ -1,14 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {useDispatch, useSelector} from 'react-redux'
-import { createOrder } from '../../redux/slices/checkoutSlice';
 import Loading from '../Common/Loading'
-import axios from 'axios';
+import { checkout } from '../../redux/slices/cartSlice';
 const Checkout = () => {
   const [load, setLoad] = useState(false)
   const navigate = useNavigate()
   const dispatch = useDispatch()
-  const [checkoutID, setCheckoutID] = useState(null)
   const {cart, loading, error} = useSelector((state) => state.cart)
   const {user} = useSelector((state) => state.auth)
 
@@ -23,7 +21,7 @@ const Checkout = () => {
     e.preventDefault()
     setLoad(true)
     try {
-        await dispatch(createOrder({user: user._id, orderItems: cart.products, shippingAddress, totalPrice: cart.totalPrice, name: firstName + " " + lastName, phone}))
+        await dispatch(checkout({user: user._id, orderItems: cart.products, shippingAddress, totalPrice: cart.totalPrice, name: firstName + " " + lastName, phone}))
         navigate('/order-confirmation')
 
     } catch (error) {

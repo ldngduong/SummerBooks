@@ -6,7 +6,7 @@ import Loading from '../components/Common/Loading';
 
 const OrderConfirmation = () => {
   const dispatch = useDispatch()
-  const {checkout, loading} = useSelector((state) => state.checkout)
+  const {checkout, loading} = useSelector((state) => state.cart)
 
   const navigate = useNavigate()
 
