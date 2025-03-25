@@ -6,11 +6,9 @@ const { protect } = require("../middleware/authMiddleware");
 const router = express.Router();
 
 // Help function get cart by userid or guestid - public
-const getCart = async (userId, guestId) => {
+const getCart = async (userId) => {
   if (userId) {
     return await Cart.findOne({ user: userId });
-  } else if (guestId) {
-    return await Cart.findOne({ guestId });
   }
   return null;
 };
@@ -116,9 +114,9 @@ router.put("/", async (req, res) => {
 
 // get /api/cart - get cart - public
 router.get("/", async (req, res) => {
-  const { userId, guestId } = req.query;
+  const { userId } = req.query;
   try {
-    const cart = await getCart(userId, guestId);
+    const cart = await getCart(userId);
     if (cart) {
       return res.json(cart);
     } else {
@@ -130,53 +128,5 @@ router.get("/", async (req, res) => {
   }
 });
 
-// post /api/cart/merge - merge guest cart into user cart - protect
-router.post("/merge", protect, async (req, res) => {
-  const { guestId } = req.body;
-  try {
-    const guestCart = await Cart.findOne({ guestId });
-    const userCart = await Cart.findOne({ user: req.user._id });
-    if (guestCart) {
-      if (guestCart.products.length === 0) {
-        return res.status(400).json({ message: "Guest cart is empty" });
-      }
-      if (userCart) {
-        guestCart.products.forEach((guestItem) => {
-          const productIndex = userCart.products.findIndex(
-            (item) =>
-              item.productId.toString() === guestItem.productId.toString()
-          );
-          if(productIndex > -1){
-            userCart.products[productIndex].quantity += guestItem.quantity
-          } else {
-            userCart.products.push(guestItem)
-          }
-        });
-        userCart.totalPrice = userCart.products.reduce((acc, item) => acc + item.price *item.quantity,0)
-        await userCart.save()
-        try {
-            await Cart.findOneAndDelete({guestId})
-        } catch (error) {
-            console.log('error deleting guest cart', error)
-            return res.status(500).send({message: 'Lỗi'})
-        }
-        res.status(200).json(userCart)
-      } else{
-        guestCart.user = req.user._id;
-        guestCart.guestId = undefined
-        await guestCart.save()
-        return res.status(200).json(guestCart)
-      }
-    } else {
-        if(userCart){
-            return res.status(200).json(userCart)
-        }
-        return res.status(404).json({message: "Không thấy guest cart"})
-    }
-  } catch (error) {
-    console.log(error)
-    res.status(500).send(error)
-  }
-});
 
 module.exports = router;
