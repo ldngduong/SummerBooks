@@ -16,6 +16,7 @@ import AdminHome from "./pages/AdminHome";
 import UserManager from "./components/Admin/UserManager";
 import OrderManager from "./components/Admin/OrderManager";
 import ProductManager from "./components/Admin/ProductManager";
+import VoucherManager from "./components/Admin/VoucherManager";
 import AdminOrderDetail from "./components/Admin/AdminOrderDetail";
 import EditProduct from "./components/Admin/EditProduct";
 import ProtectedRoute from "./components/Common/ProtectedRoute";
@@ -59,6 +60,7 @@ function App() {
               <Route path="orders" element={<OrderManager />} />
               <Route path="orders/:id" element={<AdminOrderDetail />} />
               <Route path="products" element={<ProductManager />} />
+              <Route path="vouchers" element={<VoucherManager />} />
               <Route path="shop-manager" element={<ShopManager />} />
               <Route path="products/:id/edit" element={<EditProduct />} />
             </Route>

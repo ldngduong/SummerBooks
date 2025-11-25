@@ -6,6 +6,7 @@ import { HiHome } from "react-icons/hi2";
 import { FaUser } from "react-icons/fa";
 import { FaBoxOpen } from "react-icons/fa";
 import { AiFillProduct } from "react-icons/ai";
+import { FaTicketAlt } from "react-icons/fa";
 import { CiShop } from "react-icons/ci";
 import { useDispatch, useSelector } from 'react-redux';
 import Loading from '../Common/Loading';
@@ -80,6 +81,18 @@ const AdminSidebar = ({toggleSidebar, isSidebarOpen}) => {
                         >
                             <AiFillProduct  />
                             Quản lý sản phẩm
+                        </NavLink>
+                    )}
+                    {user.role === 'Quản trị viên' && (
+                        <NavLink 
+                        className={({ isActive }) => 
+                            `text-lg rounded-lg font-semibold text-white my-3 flex gap-2 items-center 
+                            transition-all duration-300 hover:scale-105 hover:border-none w-full p-3 ${isActive ? 'bg-blue-600' : ''}`
+                        }                          
+                        to='/admin/vouchers'
+                        >
+                            <FaTicketAlt />
+                            Quản lý voucher
                         </NavLink>
                     )}
                     {user.role === 'Quản trị viên' && (
