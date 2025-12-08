@@ -5,6 +5,7 @@ import { registerUser } from "../redux/slices/authSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
 import Loading from "../components/Common/Loading";
+import FullLoading from "../components/Common/FullLoading";
 
 const Register = () => {
   const { user, loading } = useSelector((state) => state.auth);
@@ -15,21 +16,67 @@ const Register = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [errors, setErrors] = useState({
+    email: "",
+    name: "",
+    password: "",
+    general: "",
+  });
   const dispatch = useDispatch();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if(email === '' || password === '' || name === ''){
-        return toast.error('Vui lòng nhập đầy đủ thông tin');
+    const namePattern = /^[\p{L}\s]{2,}$/u;
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const passwordPattern =
+      /^(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>_\-])[A-Za-z\d!@#$%^&*(),.?":{}|<>_\-]{8,}$/;
+
+    const newErrors = { email: "", name: "", password: "", general: "" };
+
+    if (name.trim() === "") {
+      newErrors.name = "Vui lòng nhập đầy đủ thông tin";
+    } else if (!namePattern.test(name.trim())) {
+      newErrors.name = "Họ và tên không đúng định dạng (chỉ chữ, tối thiểu 2 ký tự).";
     }
-    if(password.length < 6){
-          return toast.error('Mật khẩu phải có tối thiểu 6 kí tự');
-      } 
+
+    if (email.trim() === "") {
+      newErrors.email = "Vui lòng nhập đầy đủ thông tin";
+    } else if (!emailPattern.test(email.trim())) {
+      newErrors.email = "Email không đúng định dạng.";
+    }
+
+    if (password.trim() === "") {
+      newErrors.password = "Vui lòng nhập đầy đủ thông tin";
+    } else if (!passwordPattern.test(password)) {
+      newErrors.password =
+        "Mật khẩu không hợp lệ. tối thiểu 8 ký tự trong đó tối thiếu 1 ký tự đặc biệt và 1 ký tự in hoa.";
+    }
+
+    if (newErrors.email || newErrors.name || newErrors.password) {
+      setErrors(newErrors);
+      return;
+    }
     try {
-        await dispatch(registerUser({ name, email, password })).unwrap();
-        toast.success('Đăng ký thành công');
+      setErrors({ email: "", name: "", password: "", general: "" });
+      await dispatch(registerUser({ name, email, password })).unwrap();
+      toast.success('Đăng ký thành công');
     } catch (error) {
-        toast.error(error|| 'Đăng ký không thành công. Vui lòng kiểm tra lại thông tin');
+      const errMsg = error || 'Đăng ký không thành công. Vui lòng kiểm tra lại thông tin';
+      const serverErrors = { email: "", name: "", password: "", general: "" };
+      if (typeof errMsg === "string") {
+        if (errMsg.toLowerCase().includes("email")) {
+          serverErrors.email = errMsg;
+        } else if (errMsg.toLowerCase().includes("tên")) {
+          serverErrors.name = errMsg;
+        } else if (errMsg.toLowerCase().includes("mật khẩu")) {
+          serverErrors.password = errMsg;
+        } else {
+          serverErrors.general = errMsg;
+        }
+      } else {
+        serverErrors.general = 'Đăng ký không thành công. Vui lòng kiểm tra lại thông tin';
+      }
+      setErrors(serverErrors);
     }
   };
   useEffect(() => {
@@ -58,10 +105,14 @@ const Register = () => {
               value={email}
               onChange={(e) => {
                 setEmail(e.target.value);
+                if (errors.email) setErrors((prev) => ({ ...prev, email: "" }));
               }}
               className="w-full p-2 border rounded"
               placeholder="username@email"
             />
+            {errors.email && (
+              <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+            )}
           </div>
           <div className="mb-4">
             <label className="block text-sm font-semibold mb-2">
@@ -72,10 +123,14 @@ const Register = () => {
               value={name}
               onChange={(e) => {
                 setName(e.target.value);
+                if (errors.name) setErrors((prev) => ({ ...prev, name: "" }));
               }}
               className="w-full p-2 border rounded"
               placeholder="Họ và tên"
             />
+            {errors.name && (
+              <p className="text-red-500 text-sm mt-1">{errors.name}</p>
+            )}
           </div>
           <div className="mb-4">
             <label className="block text-sm font-semibold mb-2">Mật khẩu</label>
@@ -84,11 +139,18 @@ const Register = () => {
               value={password}
               onChange={(e) => {
                 setPassword(e.target.value);
+                if (errors.password) setErrors((prev) => ({ ...prev, password: "" }));
               }}
               className="w-full p-2 border rounded"
               placeholder="Mật khẩu"
             />
+            {errors.password && (
+              <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+            )}
           </div>
+          {errors.general && (
+            <p className="text-red-500 text-sm mb-2">{errors.general}</p>
+          )}
           {loading && loading ? (
             <Loading />
           ) : (
