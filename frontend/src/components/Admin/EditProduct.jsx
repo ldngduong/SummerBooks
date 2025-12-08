@@ -55,6 +55,7 @@ const EditProduct = () => {
 
   useEffect(() => {
     if (selectedProduct) {
+      const stockValue = selectedProduct.countInStock || 0;
       setFormData({
         name: selectedProduct.name || "",
         description: selectedProduct.description || "",
@@ -63,50 +64,133 @@ const EditProduct = () => {
         countOfPage: selectedProduct.countOfPage || "",
         publishedAt: new Date(selectedProduct.publishedAt).toISOString().split('T')[0] || [],
         images: selectedProduct.images || [],
-        countInStock: selectedProduct.countInStock || 0,
+        countInStock: stockValue,
         author: selectedProduct.author || "",
       });
+      
+      // Validate số lượng tồn kho khi load dữ liệu
+      if (stockValue <= 0) {
+        setErrors(prev => ({ ...prev, countInStock: "Số lượng tồn kho tối thiểu là 1" }));
+      } else {
+        setErrors(prev => ({ ...prev, countInStock: "" }));
+      }
     }
   }, [selectedProduct]);
 
   const handleFormChange = (e) => {
     const { name, value } = e.target;
+    const newErrors = { ...errors };
     
     // Xử lý đặc biệt cho trường giá tiền
     if (name === 'price') {
       const formattedValue = formatPrice(value);
       setFormData({ ...formData, [name]: formattedValue });
+      
+      // Validate real-time cho giá
+      const priceValue = unformatPrice(formattedValue);
+      if (priceValue === '') {
+        newErrors.price = "Vui lòng nhập đầy đủ thông tin";
+      } else {
+        const priceNum = Number(priceValue);
+        if (isNaN(priceNum) || priceNum <= 0 || !Number.isInteger(priceNum)) {
+          newErrors.price = "Giá trị không hợp lệ";
+        } else if (priceNum < 1000) {
+          newErrors.price = "Giá bán tối thiểu là 1.000 VNĐ";
+        } else {
+          newErrors.price = "";
+        }
+      }
     } else if (name === 'countOfPage') {
       // Chặn số âm cho số trang
       const numericValue = value.replace(/[^0-9]/g, '');
-      if (numericValue === '' || numericValue === '0') {
-        setFormData({ ...formData, [name]: numericValue === '' ? '' : 0 });
+      if (numericValue === '') {
+        setFormData({ ...formData, [name]: '' });
+        newErrors.countOfPage = "Vui lòng nhập đầy đủ thông tin";
+      } else if (numericValue === '0') {
+        setFormData({ ...formData, [name]: 0 });
+        newErrors.countOfPage = "Số trang tối thiểu là 24 trang";
       } else {
-        setFormData({ ...formData, [name]: Number(numericValue) });
+        const num = Number(numericValue);
+        setFormData({ ...formData, [name]: num });
+        // Validate real-time
+        if (num < 24) {
+          newErrors.countOfPage = "Số trang tối thiểu là 24 trang";
+        } else {
+          newErrors.countOfPage = "";
+        }
       }
     } else if (name === 'countInStock') {
       // Cho phép nhập để validate real-time
       const numericValue = value.replace(/[^0-9]/g, '');
       if (numericValue === '') {
         setFormData({ ...formData, [name]: '' });
-        setErrors({ ...errors, [name]: "" });
+        newErrors.countInStock = "Vui lòng nhập đầy đủ thông tin";
       } else {
         const num = Number(numericValue);
         setFormData({ ...formData, [name]: num });
         // Validate real-time: nếu < 1 thì hiển thị lỗi
         if (num < 1) {
-          setErrors({ ...errors, [name]: "Số lượng tồn kho tối thiểu là 1" });
+          newErrors.countInStock = "Số lượng tồn kho tối thiểu là 1";
         } else {
-          setErrors({ ...errors, [name]: "" });
+          newErrors.countInStock = "";
         }
+      }
+    } else if (name === 'name') {
+      setFormData({ ...formData, [name]: value });
+      // Validate real-time cho tên sách
+      if (!value || value.trim() === "") {
+        newErrors.name = "Vui lòng nhập đầy đủ thông tin";
+      } else if (value.trim().length > 250) {
+        newErrors.name = "Tên sách không được vượt quá 250 ký tự";
+      } else {
+        newErrors.name = "";
+      }
+    } else if (name === 'description') {
+      setFormData({ ...formData, [name]: value });
+      // Validate real-time cho mô tả
+      if (!value || value.trim() === "") {
+        newErrors.description = "Vui lòng nhập đầy đủ thông tin";
+      } else if (value.trim().length > 2000) {
+        newErrors.description = "Mô tả không được vượt quá 2000 ký tự";
+      } else {
+        newErrors.description = "";
+      }
+    } else if (name === 'author') {
+      setFormData({ ...formData, [name]: value });
+      // Validate real-time cho tác giả
+      if (!value || value.trim() === "") {
+        newErrors.author = "Vui lòng nhập đầy đủ thông tin";
+      } else {
+        const authorTrimmed = value.trim();
+        if (authorTrimmed.length < 3) {
+          newErrors.author = "Tác giả phải có tối thiểu 3 ký tự";
+        } else if (authorTrimmed.length > 50) {
+          newErrors.author = "Tác giả không được vượt quá 50 ký tự";
+        } else {
+          newErrors.author = "";
+        }
+      }
+    } else if (name === 'category') {
+      setFormData({ ...formData, [name]: value });
+      // Validate real-time cho thể loại
+      if (!value || value === "") {
+        newErrors.category = "Vui lòng nhập đầy đủ thông tin";
+      } else {
+        newErrors.category = "";
+      }
+    } else if (name === 'publishedAt') {
+      setFormData({ ...formData, [name]: value });
+      // Validate real-time cho ngày xuất bản
+      if (!value || value === "") {
+        newErrors.publishedAt = "Vui lòng nhập đầy đủ thông tin";
+      } else {
+        newErrors.publishedAt = "";
       }
     } else {
       setFormData({ ...formData, [name]: value });
-      // Xóa lỗi khi người dùng bắt đầu nhập
-      if (errors[name]) {
-        setErrors({ ...errors, [name]: "" });
-      }
     }
+    
+    setErrors(newErrors);
   };
 
   // Handler để ngăn tooltip HTML5 validation
