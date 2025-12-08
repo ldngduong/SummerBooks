@@ -8,13 +8,6 @@ const voucherSchema = new mongoose.Schema(
             trim: true,
             unique: true,
             uppercase: true,
-            validate: {
-                validator: function(v) {
-                    // Format: 4 chữ cái + 4 chữ số (ví dụ: ABCD1234)
-                    return /^[A-Z]{4}[0-9]{4}$/.test(v);
-                },
-                message: 'Mã voucher phải có định dạng: 4 chữ cái và 4 chữ số (VD: ABCD1234)'
-            }
         },
         value: {
             type: Number,
@@ -29,16 +22,29 @@ const voucherSchema = new mongoose.Schema(
             type: Date,
             required: true,
         },
-        limit: {
+        remain: {
             type: Number,
             required: true,
             default: 1,
-            min: 1,
+            min: 0,
+            max: 100,
+        },
+        max_discount_amount: {
+            type: Number,
+            required: false,
+            min: 0,
+            default: null,
+        },
+        min_order_value: {
+            type: Number,
+            required: false,
+            min: 0,
+            default: 0,
         },
         status: {
             type: String,
             required: true,
-            enum: ['active', 'inactive', 'expired'],
+            enum: ['active', 'inactive'],
             default: 'active',
         },
         user: {
@@ -51,7 +57,7 @@ const voucherSchema = new mongoose.Schema(
 );
 
 // Index for faster queries
-voucherSchema.index({ code: 1 });
+// Note: code already has unique index from unique: true
 voucherSchema.index({ status: 1 });
 voucherSchema.index({ start_date: 1, end_date: 1 });
 

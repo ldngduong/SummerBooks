@@ -12,9 +12,16 @@ router.post("/", protect, admin, async (req, res) => {
       value,
       start_date,
       end_date,
-      limit,
+      remain,
+      max_discount_amount,
+      min_order_value,
       status,
     } = req.body;
+
+    // Validate code format: 4 chữ cái + 4 chữ số (ví dụ: ABCD1234)
+    if (!code || !/^[A-Z]{4}[0-9]{4}$/.test(code.toUpperCase())) {
+      return res.status(400).json({ message: "Mã voucher phải có định dạng: 4 chữ cái và 4 chữ số (VD: ABCD1234)" });
+    }
 
     // Validate dates
     if (new Date(start_date) >= new Date(end_date)) {
@@ -26,13 +33,43 @@ router.post("/", protect, admin, async (req, res) => {
       value,
       start_date,
       end_date,
-      limit,
+      remain,
+      max_discount_amount: max_discount_amount || null,
+      min_order_value: min_order_value || 0,
       status: status || 'active',
       user: req.user._id,
     });
 
     const createdVoucher = await voucher.save();
-    res.status(201).json(createdVoucher);
+    
+    // Get all vouchers and return 3 arrays
+    const allVouchers = await Voucher.find({})
+      .populate('user', 'name email')
+      .sort({ createdAt: -1 });
+
+    const now = new Date();
+    const activeVouchers = [];
+    const expiredVouchers = [];
+    const outOfStockVouchers = [];
+
+    allVouchers.forEach(v => {
+      if (new Date(v.end_date) >= now) {
+        if (v.remain > 0) {
+          activeVouchers.push(v);
+        } else {
+          outOfStockVouchers.push(v);
+        }
+      } else {
+        expiredVouchers.push(v);
+      }
+    });
+
+    res.status(201).json({
+      voucher: createdVoucher,
+      active: activeVouchers,
+      expired: expiredVouchers,
+      outOfStock: outOfStockVouchers
+    });
   } catch (error) {
     if (error.name === "ValidationError") {
       const messages = Object.values(error.errors).map((err) => err.message);
@@ -53,13 +90,20 @@ router.put("/:id", protect, admin, async (req, res) => {
       value,
       start_date,
       end_date,
-      limit,
+      remain,
+      max_discount_amount,
+      min_order_value,
       status,
     } = req.body;
     
     const voucher = await Voucher.findById(req.params.id);
 
     if (voucher) {
+      // Validate code format if provided: 4 chữ cái + 4 chữ số (ví dụ: ABCD1234)
+      if (code && !/^[A-Z]{4}[0-9]{4}$/.test(code.toUpperCase())) {
+        return res.status(400).json({ message: "Mã voucher phải có định dạng: 4 chữ cái và 4 chữ số (VD: ABCD1234)" });
+      }
+
       // Validate dates if both are provided
       if (start_date && end_date && new Date(start_date) >= new Date(end_date)) {
         return res.status(400).json({ message: "Ngày kết thúc phải sau ngày bắt đầu" });
@@ -69,11 +113,41 @@ router.put("/:id", protect, admin, async (req, res) => {
       voucher.value = value !== undefined ? value : voucher.value;
       voucher.start_date = start_date || voucher.start_date;
       voucher.end_date = end_date || voucher.end_date;
-      voucher.limit = limit !== undefined ? limit : voucher.limit;
+      voucher.remain = remain !== undefined ? remain : voucher.remain;
+      if (max_discount_amount !== undefined) voucher.max_discount_amount = max_discount_amount || null;
+      if (min_order_value !== undefined) voucher.min_order_value = min_order_value || 0;
       voucher.status = status || voucher.status;
 
       const updatedVoucher = await voucher.save();
-      res.status(200).json(updatedVoucher);
+      
+      // Get all vouchers and return 3 arrays
+      const allVouchers = await Voucher.find({})
+        .populate('user', 'name email')
+        .sort({ createdAt: -1 });
+
+      const now = new Date();
+      const activeVouchers = [];
+      const expiredVouchers = [];
+      const outOfStockVouchers = [];
+
+      allVouchers.forEach(v => {
+        if (new Date(v.end_date) >= now) {
+          if (v.remain > 0) {
+            activeVouchers.push(v);
+          } else {
+            outOfStockVouchers.push(v);
+          }
+        } else {
+          expiredVouchers.push(v);
+        }
+      });
+
+      res.status(200).json({
+        voucher: updatedVoucher,
+        active: activeVouchers,
+        expired: expiredVouchers,
+        outOfStock: outOfStockVouchers
+      });
     } else {
       res.status(404).json({ message: "Không tìm thấy voucher" });
     }
@@ -123,11 +197,33 @@ router.get("/", protect, admin, async (req, res) => {
       ];
     }
 
-    const vouchers = await Voucher.find(query)
+    const allVouchers = await Voucher.find(query)
       .populate('user', 'name email')
       .sort({ createdAt: -1 });
+
+    // Phân loại voucher: còn hạn, hết hạn, hết lượt sử dụng
+    const now = new Date();
+    const activeVouchers = [];
+    const expiredVouchers = [];
+    const outOfStockVouchers = [];
+
+    allVouchers.forEach(voucher => {
+      if (new Date(voucher.end_date) >= now) {
+        if (voucher.remain > 0) {
+          activeVouchers.push(voucher);
+        } else {
+          outOfStockVouchers.push(voucher);
+        }
+      } else {
+        expiredVouchers.push(voucher);
+      }
+    });
     
-    res.json(vouchers);
+    res.json({
+      active: activeVouchers,
+      expired: expiredVouchers,
+      outOfStock: outOfStockVouchers
+    });
   } catch (error) {
     console.log(error);
     res.status(500).send(error);
@@ -168,9 +264,6 @@ router.get("/validate/:code", async (req, res) => {
     }
 
     if (now > new Date(voucher.end_date)) {
-      // Auto update status to expired
-      voucher.status = 'expired';
-      await voucher.save();
       return res.status(400).json({ message: "Mã voucher đã hết hạn" });
     }
 
@@ -180,7 +273,7 @@ router.get("/validate/:code", async (req, res) => {
         id: voucher._id,
         code: voucher.code,
         value: voucher.value,
-        limit: voucher.limit,
+        remain: voucher.remain,
       }
     });
   } catch (error) {

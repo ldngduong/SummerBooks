@@ -52,7 +52,9 @@ export const deleteVoucher = createAsyncThunk('adminVoucher/deleteVoucher', asyn
 const adminVoucherSlice = createSlice({
     name: 'adminVoucher',
     initialState: {
-        vouchers: [],
+        activeVouchers: [],
+        expiredVouchers: [],
+        outOfStockVouchers: [],
         loading: false,
         error: null
     },
@@ -66,7 +68,9 @@ const adminVoucherSlice = createSlice({
         })
         .addCase(fetchVouchers.fulfilled, (state, action) => {
             state.loading = false;
-            state.vouchers = action.payload;
+            state.activeVouchers = action.payload.active || [];
+            state.expiredVouchers = action.payload.expired || [];
+            state.outOfStockVouchers = action.payload.outOfStock || [];
         })
         .addCase(fetchVouchers.rejected, (state, action) => {
             state.loading = false;
@@ -80,10 +84,11 @@ const adminVoucherSlice = createSlice({
         })
         .addCase(updateVoucher.fulfilled, (state, action) => {
             state.loading = false;
-            const updatedVoucher = action.payload
-            const voucherIndex = state.vouchers.findIndex((voucher) => voucher._id === updatedVoucher._id)
-            if(voucherIndex !== -1){
-                state.vouchers[voucherIndex] = updatedVoucher
+            // Update with new arrays from backend
+            if (action.payload.active && action.payload.expired) {
+                state.activeVouchers = action.payload.active;
+                state.expiredVouchers = action.payload.expired;
+                state.outOfStockVouchers = action.payload.outOfStock || [];
             }
         })
         .addCase(updateVoucher.rejected, (state, action) => {
@@ -98,7 +103,9 @@ const adminVoucherSlice = createSlice({
         })
         .addCase(deleteVoucher.fulfilled, (state, action) => {
             state.loading = false;
-            state.vouchers = state.vouchers.filter((voucher) => voucher._id !== action.payload.id)
+            state.activeVouchers = state.activeVouchers.filter((voucher) => voucher._id !== action.payload.id)
+            state.expiredVouchers = state.expiredVouchers.filter((voucher) => voucher._id !== action.payload.id)
+            state.outOfStockVouchers = state.outOfStockVouchers.filter((voucher) => voucher._id !== action.payload.id)
         })
         .addCase(deleteVoucher.rejected, (state, action) => {
             state.loading = false;
@@ -112,8 +119,12 @@ const adminVoucherSlice = createSlice({
         })
         .addCase(addVoucher.fulfilled, (state, action) => {
             state.loading = false;
-            const addedVoucher = action.payload
-            state.vouchers.push(addedVoucher)
+            // Update with new arrays from backend
+            if (action.payload.active && action.payload.expired) {
+                state.activeVouchers = action.payload.active;
+                state.expiredVouchers = action.payload.expired;
+                state.outOfStockVouchers = action.payload.outOfStock || [];
+            }
         })
         .addCase(addVoucher.rejected, (state, action) => {
             state.loading = false;

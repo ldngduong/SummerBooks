@@ -36,19 +36,9 @@ const orderSchema = new mongoose.Schema(
             required: true
         },
         orderItems: [orderItemSchema],
-        shippingAddress: {
-            address1: {
-                type: String, required: true
-            },
-            address2: {
-                type: String, required: true
-            },
-            address3: {
-                type: String, required: true
-            },
-            city: {
-                type: String, required: true
-            }
+        address: {
+            type: String,
+            required: true
         },
         totalPrice: {
             type: Number,
@@ -68,6 +58,24 @@ const orderSchema = new mongoose.Schema(
         },
         phone: {
             type: String
+        },
+        voucher: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Voucher',
+            default: null
+        },
+        userVoucher: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'UserVoucher',
+            default: null
+        },
+        discountAmount: {
+            type: Number,
+            default: 0
+        },
+        originalPrice: {
+            type: Number,
+            required: true
         }
     }, 
     {timeseries: true}
