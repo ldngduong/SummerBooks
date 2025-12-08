@@ -8,9 +8,29 @@ const router = express.Router();
 router.post('/register', async (req, res) => {
     const {name, email, password} = req.body
     try{
+        if(!name || !email || !password){
+            return res.status(400).json({message: 'Vui lòng nhập đầy đủ thông tin'})
+        }
+
+        const namePattern = /^[\p{L}\s]{2,}$/u
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+        const passwordPattern = /^(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>_\-]).{8,}$/
+
+        if(!namePattern.test(name.trim())){
+            return res.status(400).json({message: 'Họ và tên không đúng định dạng (chỉ chữ, tối thiểu 2 ký tự).'})
+        }
+
+        if(!emailPattern.test(email.trim())){
+            return res.status(400).json({message: 'Email không đúng định dạng.'})
+        }
+
+        if(!passwordPattern.test(password)){
+            return res.status(400).json({message: 'Mật khẩu không hợp lệ. tối thiểu 8 ký tự trong đó tối thiếu 1 ký tự đặc biệt và 1 ký tự in hoa.'})
+        }
+
         let user = await User.findOne({email})
 
-        if(user) return res.status(400).json({message: 'Người dùng đã tồn tại'})
+        if(user) return res.status(400).json({message: 'Email đã tồn tại'})
 
         user = new User({name, email, password})
         await user.save();
@@ -32,6 +52,13 @@ router.post('/register', async (req, res) => {
         
     } catch(err){
         console.log(err)
+        if(err.name === 'ValidationError'){
+            const passwordError = err.errors?.password?.message
+            if(passwordError){
+                return res.status(400).json({message: passwordError})
+            }
+            return res.status(400).json({message: 'Thông tin không hợp lệ.'})
+        }
         return res.status(500).json({message: 'Lỗi không xác định'})
     }
 })

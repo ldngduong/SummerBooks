@@ -7,6 +7,8 @@ const userSchema = new mongoose.Schema(
             type: String,
             required: true,
             trim: true,
+            minLength: 2,
+            match: [/^[\p{L}\s]+$/u, 'Thông tin không hợp lệ.'],
         },
         email: {
             type: String,
@@ -18,7 +20,13 @@ const userSchema = new mongoose.Schema(
         password: {
             type: String,
             required: true,
-            minLength: 6,
+            minLength: 8,
+            validate: {
+                validator: (value) =>
+                    /^(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>_\-]).{8,}$/.test(value),
+                message:
+                    'Mật khẩu không hợp lệ. tối thiểu 8 ký tự trong đó tối thiếu 1 ký tự đặc biệt và 1 ký tự in hoa.',
+            },
         },
         role: {
             type: String,
