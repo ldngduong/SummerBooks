@@ -5,6 +5,7 @@ import { Toaster } from "sonner";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Profile from "./pages/Profile";
+import UserVouchers from "./pages/UserVouchers";
 import CollectionsPage from "./pages/CollectionsPage";
 import ShopManager from "./components/Admin/ShopManager";
 import ProductsDetails from "./components/Products/ProductsDetails";
@@ -16,6 +17,8 @@ import AdminHome from "./pages/AdminHome";
 import UserManager from "./components/Admin/UserManager";
 import OrderManager from "./components/Admin/OrderManager";
 import ProductManager from "./components/Admin/ProductManager";
+import VoucherManager from "./components/Admin/VoucherManager";
+import GiftVoucher from "./components/Admin/GiftVoucher";
 import AdminOrderDetail from "./components/Admin/AdminOrderDetail";
 import EditProduct from "./components/Admin/EditProduct";
 import ProtectedRoute from "./components/Common/ProtectedRoute";
@@ -44,6 +47,7 @@ function App() {
               <Route path="login" element={<Login />} />
               <Route path="register" element={<Register />} />
               <Route path="profile" element={<Profile />} />
+              <Route path="my-vouchers" element={<UserVouchers />} />
               <Route path="collections/:collection" element={<CollectionsPage />} />
               <Route path="product/:id" element={<ProductsDetails />} />
               <Route path="checkout" element={<Checkout />} />
@@ -59,6 +63,8 @@ function App() {
               <Route path="orders" element={<OrderManager />} />
               <Route path="orders/:id" element={<AdminOrderDetail />} />
               <Route path="products" element={<ProductManager />} />
+              <Route path="vouchers" element={<VoucherManager />} />
+              <Route path="vouchers/:id/gift" element={<GiftVoucher />} />
               <Route path="shop-manager" element={<ShopManager />} />
               <Route path="products/:id/edit" element={<EditProduct />} />
             </Route>

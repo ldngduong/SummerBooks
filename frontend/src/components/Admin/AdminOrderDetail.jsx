@@ -42,8 +42,7 @@ const AdminOrderDetail = () => {
                 </div>
                 <div className="p-2 border border-gray-500 rounded-lg">
                     <h4 className="text-lg font-semibold mb-2">Địa chỉ</h4>
-                    <p className="text-gray-600 mb-">{orderDetails && orderDetails.shippingAddress.address1}, {orderDetails && orderDetails.shippingAddress.address2}</p>
-                    <p className='text-gray-600 mb-2'>{orderDetails && orderDetails.shippingAddress.address3}, {orderDetails && orderDetails.shippingAddress.city}</p>
+                    <p className="text-gray-600 mb-2">{orderDetails && (orderDetails.address || (orderDetails.shippingAddress && `${orderDetails.shippingAddress.address1}, ${orderDetails.shippingAddress.address2}, ${orderDetails.shippingAddress.address3}, ${orderDetails.shippingAddress.city}`))}</p>
                 </div>
                 <div className="p-2 border border-gray-500 rounded-lg">
                     <h4 className="text-lg font-semibold mb-2">Thông tin người nhận</h4>

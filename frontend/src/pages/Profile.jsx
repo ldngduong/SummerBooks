@@ -38,6 +38,11 @@ const Profile = () => {
             <h1 className="text-2xl md:text-3xl font-bold mb-2">{user.name}</h1>
             <p className='text text-gray-600 mb-2'>Email: {user.email}</p>
             <button 
+              onClick={() => navigate('/my-vouchers')}
+              className='cursor-pointer w-full bg-orange-600 text-white py-2 px-4 rounded hover:bg-orange-500 transition-all duration-300 mb-3'>
+              Xem voucher
+            </button>
+            <button 
               onClick={handleLogout} 
               className='cursor-pointer w-full bg-amber-600 text-white py-2 px-4 rounded hover:bg-amber-500 transition-all duration-300'>
               Đăng xuất

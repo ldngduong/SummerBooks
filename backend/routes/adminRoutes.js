@@ -9,7 +9,17 @@ const router = express.Router()
     // get /api/admin/users - get all user - admin only
     router.get('/users', protect, admin, async (req, res) => {
         try {
-            const users = await User.find({})
+            const { search } = req.query;
+            let query = {};
+            
+            if (search) {
+                query.$or = [
+                    { name: { $regex: search, $options: 'i' } },
+                    { email: { $regex: search, $options: 'i' } }
+                ];
+            }
+            
+            const users = await User.find(query).select('-password')
             return res.json(users)
         } catch (error) {
             res.status(500).json({message: "Lỗi server"})

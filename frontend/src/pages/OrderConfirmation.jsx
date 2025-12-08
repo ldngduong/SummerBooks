@@ -51,8 +51,7 @@ const OrderConfirmation = () => {
                 </div>
                 <div className="p-2 border border-gray-500 rounded-lg">
                     <h4 className="text-lg font-semibold mb-2">Địa chỉ</h4>
-                    <p className="text-gray-600 mb-">{checkout.shippingAddress.address1}, {checkout.shippingAddress.address2}</p>
-                    <p className='text-gray-600 mb-2'>{checkout.shippingAddress.address3}, {checkout.shippingAddress.city}</p>
+                    <p className="text-gray-600 mb-2">{checkout.address || (checkout.shippingAddress && `${checkout.shippingAddress.address1}, ${checkout.shippingAddress.address2}, ${checkout.shippingAddress.address3}, ${checkout.shippingAddress.city}`)}</p>
                 </div>
                 <div className="p-2 border border-gray-500 rounded-lg">
                     <h4 className="text-lg font-semibold mb-2">Thông tin người nhận</h4>

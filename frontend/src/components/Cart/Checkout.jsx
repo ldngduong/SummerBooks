@@ -1,43 +1,116 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {useDispatch, useSelector} from 'react-redux'
+import axios from 'axios'
+import { toast } from 'sonner'
 import Loading from '../Common/Loading'
 import { checkout } from '../../redux/slices/cartSlice';
+
 const Checkout = () => {
   const [load, setLoad] = useState(false)
   const navigate = useNavigate()
   const dispatch = useDispatch()
   const {cart, loading, error} = useSelector((state) => state.cart)
   const {user} = useSelector((state) => state.auth)
+  const [usableVouchers, setUsableVouchers] = useState([])
+  const [selectedVoucher, setSelectedVoucher] = useState(null)
+  const [discountAmount, setDiscountAmount] = useState(0)
+  const [finalPrice, setFinalPrice] = useState(0)
 
   useEffect(() => {
     if(!user|| !cart || !cart.products || cart.products.length === 0){
         navigate('/')
     }
   }, [cart, navigate])
-  
+
+  useEffect(() => {
+    if (user && cart && cart.totalPrice) {
+      fetchUsableVouchers()
+    }
+  }, [user, cart?.totalPrice])
+
+  useEffect(() => {
+    if (cart && cart.totalPrice) {
+      calculatePrice()
+    }
+  }, [selectedVoucher, cart?.totalPrice])
+
+  const fetchUsableVouchers = async () => {
+    try {
+      // Đảm bảo totalPrice là số (loại bỏ dấu phẩy nếu có)
+      const totalPrice = typeof cart.totalPrice === 'string' 
+        ? parseFloat(cart.totalPrice.replace(/,/g, '')) 
+        : parseFloat(cart.totalPrice) || 0;
+      
+      const response = await axios.get(
+        `${import.meta.env.VITE_BACKEND_URL}/api/user-vouchers/usable?totalPrice=${totalPrice}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('userToken')}`
+          }
+        }
+      )
+      setUsableVouchers(response.data.vouchers || [])
+    } catch (error) {
+      console.error('Fetch usable vouchers error:', error)
+    }
+  }
+
+  const calculatePrice = () => {
+    if (!cart || !cart.totalPrice) return
+
+    const originalPrice = parseFloat(cart.totalPrice) || 0
+    let discount = 0
+
+    if (selectedVoucher && selectedVoucher.voucher) {
+      const voucher = selectedVoucher.voucher
+      const discountPercent = voucher.value / 100
+      discount = originalPrice * discountPercent
+
+      // Áp dụng giới hạn giảm tối đa nếu có
+      if (voucher.max_discount_amount && discount > voucher.max_discount_amount) {
+        discount = voucher.max_discount_amount
+      }
+    }
+
+    setDiscountAmount(discount)
+    setFinalPrice(Math.max(0, originalPrice - discount))
+  }
+
+  const handleVoucherChange = (e) => {
+    const voucherId = e.target.value
+    if (voucherId === '') {
+      setSelectedVoucher(null)
+    } else {
+      const voucher = usableVouchers.find(v => v._id === voucherId)
+      setSelectedVoucher(voucher)
+    }
+  }
 
   const handleCreateOrder = async (e) => {
     e.preventDefault()
     setLoad(true)
     try {
-        await dispatch(checkout({user: user._id, orderItems: cart.products, shippingAddress, totalPrice: cart.totalPrice, name: firstName + " " + lastName, phone}))
+        await dispatch(checkout({
+          user: user._id, 
+          orderItems: cart.products, 
+          address, 
+          totalPrice: finalPrice || cart.totalPrice, 
+          name: firstName + " " + lastName, 
+          phone,
+          userVoucherId: selectedVoucher?._id || null
+        }))
         navigate('/order-confirmation')
 
     } catch (error) {
         console.log(error)
+        toast.error(error?.message || 'Đặt hàng không thành công')
     } finally {
         setLoad(false)
     }
   }
 
-  const [shippingAddress, setShippingAddress] = useState({
-    address1: '',
-    address2: '',
-    address3: '',
-    city: '',
-  })
-
+  const [address, setAddress] = useState('')
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [phone, setPhone] = useState(0)
@@ -66,7 +139,7 @@ const Checkout = () => {
                         <input 
                             type="text" 
                             onChange={(e) => setFirstName(e.target.value)} 
-                            value={shippingAddress.firstName} 
+                            value={firstName} 
                             className='w-full p-2 border rounded'
                             required
                         />
@@ -76,7 +149,7 @@ const Checkout = () => {
                         <input 
                             type="text" 
                             onChange={(e) => setLastName(e.target.value)} 
-                            value={shippingAddress.lastName} 
+                            value={lastName} 
                             className='w-full p-2 border rounded'
                             required
                         />
@@ -86,55 +159,46 @@ const Checkout = () => {
                     <label htmlFor="" className='block text-gray-700'>SĐT</label>
                     <input
                         type="number" 
-                        value={shippingAddress.phone} 
+                        value={phone} 
                         className='w-full p-2 border rounded'
                         onChange={(e) => setPhone(e.target.value)} 
+                        required
                     />
                 </div>
                 <h3 className='text-lg mb-4'>Địa chỉ</h3>
-                <div className="mb-4 grid grid-cols-2 gap-4">
-                    <div className="">
-                        <label htmlFor="" className='block text-gray-700'>Tên đường, số nhà</label>
-                        <input 
-                            type="text" 
-                            onChange={(e) => setShippingAddress({...shippingAddress, address1: e.target.value})} 
-                            value={shippingAddress.address1} 
-                            className='w-full p-2 border rounded'
-                            required
-                        />
-                    </div>
-                    <div className="">
-                        <label htmlFor="" className='block text-gray-700'>Phường/xã</label>
-                        <input 
-                            type="text" 
-                            onChange={(e) => setShippingAddress({...shippingAddress, address2: e.target.value})} 
-                            value={shippingAddress.address2} 
-                            className='w-full p-2 border rounded'
-                            required
-                        />
-                    </div>
+                <div className="mb-4">
+                    <label htmlFor="" className='block text-gray-700'>Địa chỉ giao hàng</label>
+                    <textarea 
+                        onChange={(e) => setAddress(e.target.value)} 
+                        value={address} 
+                        className='w-full p-2 border rounded'
+                        rows="3"
+                        placeholder="Nhập địa chỉ đầy đủ (số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố)"
+                        required
+                    />
                 </div>
-                <div className="mb-4 grid grid-cols-2 gap-4">
-                    <div className="">
-                        <label htmlFor="" className='block text-gray-700'>Quận/Huyện</label>
-                        <input 
-                            type="text" 
-                            onChange={(e) => setShippingAddress({...shippingAddress, address3: e.target.value})} 
-                            value={shippingAddress.address3} 
-                            className='w-full p-2 border rounded'
-                            required
-                        />
-                    </div>
-                    <div className="">
-                        <label htmlFor="" className='block text-gray-700'>Tỉnh/Thành phố</label>
-                        <input 
-                            type="text" 
-                            onChange={(e) => setShippingAddress({...shippingAddress, city: e.target.value})} 
-                            value={shippingAddress.city} 
-                            className='w-full p-2 border rounded'
-                            required
-                        />
-                    </div>
+                <h3 className='text-lg mb-4 mt-6'>Voucher</h3>
+                <div className="mb-4">
+                    <label htmlFor="voucher" className='block text-gray-700 mb-2'>Chọn voucher (nếu có)</label>
+                    <select
+                        id="voucher"
+                        value={selectedVoucher?._id || ''}
+                        onChange={handleVoucherChange}
+                        className='w-full p-2 border rounded'
+                    >
+                        <option value="">Không sử dụng voucher</option>
+                        {usableVouchers.map((uv) => (
+                            <option key={uv._id} value={uv._id}>
+                                {uv.voucher.code} - Giảm {uv.voucher.value}%
+                                {uv.voucher.max_discount_amount && ` (Tối đa ${new Intl.NumberFormat('vi-VN').format(uv.voucher.max_discount_amount)} đ)`}
+                            </option>
+                        ))}
+                    </select>
+                    {selectedVoucher && (
+                        <p className='text-sm text-green-600 mt-2'>
+                            Đã chọn: {selectedVoucher.voucher.code} - Giảm {selectedVoucher.voucher.value}%
+                        </p>
+                    )}
                 </div>
                 {load ? (<Loading />) : (<button className='bg-amber-600 text-white hover:bg-amber-700 border-none transition-all duration-300 w-full px-4 py-2 cursor-pointer rounded-lg'>Đặt hàng</button>)}
             </form>
@@ -161,15 +225,23 @@ const Checkout = () => {
             </div>
             <div className="flex justify-between items-center text-lg mb-4">
                 <p>Tổng</p>
-                <p className=''>{cart.totalPrice}</p>
+                <p className=''>{new Intl.NumberFormat('vi-VN').format(cart.totalPrice)} đ</p>
             </div>
+            {selectedVoucher && discountAmount > 0 && (
+                <div className="flex justify-between items-center text-lg mb-4 text-green-600">
+                    <p>Giảm giá ({selectedVoucher.voucher.code})</p>
+                    <p className='font-semibold'>-{new Intl.NumberFormat('vi-VN').format(discountAmount)} đ</p>
+                </div>
+            )}
             <div className="flex justify-between items-center text-lg pb-4 border-b border-gray-300">
                 <p>Phí vận chuyển</p>
                 <p className=''>Miễn phí</p>
             </div>
             <div className="flex justify-between items-center text-lg mt-4">
                 <p>Thành tiền</p>
-                <p className='font-bold'>{cart.totalPrice}</p>
+                <p className='font-bold text-orange-600'>
+                    {new Intl.NumberFormat('vi-VN').format(finalPrice || cart.totalPrice)} đ
+                </p>
             </div>
         </div>
     </div>
