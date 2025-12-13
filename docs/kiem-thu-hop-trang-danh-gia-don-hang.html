@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kiểm thử hộp trắng - Chức năng đánh giá đơn hàng</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+            color: #333;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+            border-left: 4px solid #3498db;
+            padding-left: 10px;
+        }
+        h3 {
+            color: #555;
+            margin-top: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #3498db;
+            color: white;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        tr:hover {
+            background-color: #e8f4f8;
+        }
+        .diagram {
+            margin: 20px 0;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        @media (max-width: 1200px) {
+            .diagram {
+                grid-template-columns: 1fr !important;
+            }
+        }
+        .node {
+            background-color: #3498db;
+            color: white;
+            padding: 10px;
+            margin: 5px;
+            border-radius: 5px;
+            display: inline-block;
+            min-width: 100px;
+            text-align: center;
+        }
+        .decision {
+            background-color: #e74c3c;
+        }
+        .process {
+            background-color: #2ecc71;
+        }
+        .start-end {
+            background-color: #9b59b6;
+        }
+        .coverage {
+            background-color: #fff3cd;
+            padding: 15px;
+            border-left: 4px solid #ffc107;
+            margin: 15px 0;
+        }
+        .test-case {
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <h1>Kiểm thử hộp trắng - Chức năng đánh giá đơn hàng</h1>
+    
+    <h2>1. Biểu đồ dòng điều khiển (Control Flow Diagram)</h2>
+    <div class="diagram" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 20px; background: #f5f5f5;">
+        <div style="text-align: center; overflow-x: auto;">
+            <svg width="100%" height="1800" viewBox="0 0 900 1800" style="background: #f5f5f5; max-width: 100%;">
+            <!-- Grid background -->
+            <defs>
+                <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+                    <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#e0e0e0" stroke-width="0.5"/>
+                </pattern>
+            </defs>
+            <rect width="900" height="1800" fill="url(#grid)"/>
+            
+            <!-- Start node -->
+            <circle cx="400" cy="30" r="15" fill="black"/>
+            <text x="400" y="35" text-anchor="middle" fill="white" font-size="12" font-weight="bold">S</text>
+            
+            <!-- Node 1 -->
+            <circle cx="400" cy="80" r="20" fill="white" stroke="black" stroke-width="2"/>
+            <text x="400" y="85" text-anchor="middle" font-size="14" font-weight="bold">1</text>
+            <line x1="400" y1="45" x2="400" y2="60" stroke="black" stroke-width="2" marker-end="url(#arrowhead)"/>
+            
+            <!-- Node 2 (Decision) -->
+            <circle cx="400" cy="150" r="20" fill="white" stroke="black" stroke-width="2"/>
+            <text x="400" y="155" text-anchor="middle" font-size="14" font-weight="bold">2</text>
+            <line x1="400" y1="100" x2="400" y2="130" stroke="black" stroke-width="2" marker-end="url(#arrowhead)"/>
+            
+            <!-- Node 3 (Return error) -->
+            <circle cx="200" cy="220" r="20" fill="white" stroke="black" stroke-width="2"/>
+            <text x="200" y="225" text-anchor="middle" font-size="14" font-weight="bold">3</text>
+            <line x1="380" y1="150" x2="220" y2="200" stroke="black" stroke-width="2" marker-end="url(#arrowhead)"/>
+            <text x="280" y="175" font-size="12" fill="red">T</text>
+            
+            <!-- Node 4 -->
+            <circle cx="400" cy="220" r="20" fill="white" stroke="black" stroke-width="2"/>
+            <text x="400" y="225" text-anchor="middle" font-size="14" font-weight="bold">4</text>
+            <line x1="400" y1="170" x2="400" y2="200" stroke="black" stroke-width="2" marker-end="url(#arrowhead)"/>
+            <text x="420" y="185" font-size="12" fill="green">F</text>
+            
+            <!-- Node 5 (Decision) -->
+            <circle cx="400" cy="290" r="20" fill="white" stroke="black" stroke-width="2"/>
+            <text x="400" y="295" text-anchor="middle" font-size="14" font-weight="bold">5</text>
+            <line x1="400" y1="240" x2="400" y2="270" stroke="black" stroke-width="2" marker-end="url(#arrowhead)"/>
+            
+            <!-- Node 6 (Return error) -->
+            <circle cx="200" cy="360" r="20" fill="white" stroke="black" stroke-width="2"/>
+            <text x="200" y="365" text-anchor="middle" font-size="14" font-weight="bold">6</text>
+            <line x1="380" y1="290" x2="220" y2="340" stroke="black" stroke-width="2" marker-end="url(#arrowhead)"/>
+            <text x="280" y="315" font-size="12" fill="red">T</text>
+            
+            <!-- Node 7 (Decision) -->
+            <circle cx="400" cy="360" r="20" fill="white" stroke="black" stroke-width="2"/>
+            <text x="400" y="365" text-anchor="middle" font-size="14" font-weight="bold">7</text>
+            <line x1="400" y1="310" x2="400" y2="340" stroke="black" stroke-width="2" marker-end="url(#arrowhead)"/>
+            <text x="420" y="325" font-size="12" fill="green">F</text>
+            
+            <!-- Node 8 (Return error - comment too long) -->
+            <circle cx="200" cy="430" r="20" fill="white" stroke="black" stroke-width="2"/>
+            <text x="200" y="435" text-anchor="middle" font-size="14" font-weight="bold">8</text>
+            <line x1="380" y1="360" x2="220" y2="410" stroke="black" stroke-width="2" marker-end="url(#arrowhead)"/>
+            <text x="280" y="385" font-size="12" fill="red">T</text>
+            
+            <!-- Node 9 -->
+            <circle cx="400" cy="430" r="20" fill="white" stroke="black" stroke-width="2"/>
+            <text x="400" y="435" text-anchor="middle" font-size="14" font-weight="bold">9</text>
+            <line x1="400" y1="380" x2="400" y2="410" stroke="black" stroke-width="2" marker-end="url(#arrowhead)"/>
+            <text x="420" y="395" font-size="12" fill="green">T</text>
+            
+            <!-- Node 10 (Decision) -->
+            <circle cx="400" cy="500" r="20" fill="white" stroke="black" stroke-width="2"/>
+            <text x="400" y="505" text-anchor="middle" font-size="14" font-weight="bold">10</text>
+            <line x1="400" y1="450" x2="400" y2="480" stroke="black" stroke-width="2" marker-end="url(#arrowhead)"/>
+            
+            <!-- Node 11 (Return error - order not found) -->
+            <circle cx="200" cy="570" r="20" fill="white" stroke="black" stroke-width="2"/>
+            <text x="200" y="575" text-anchor="middle" font-size="14" font-weight="bold">11</text>
+            <line x1="380" y1="500" x2="220" y2="550" stroke="black" stroke-width="2" marker-end="url(#arrowhead)"/>
+            <text x="280" y="525" font-size="12" fill="red">T</text>
+            
+            <!-- Node 12 -->
+            <circle cx="400" cy="570" r="20" fill="white" stroke="black" stroke-width="2"/>
+            <text x="400" y="575" text-anchor="middle" font-size="14" font-weight="bold">12</text>
+            <line x1="400" y1="520" x2="400" y2="550" stroke="black" stroke-width="2" marker-end="url(#arrowhead)"/>
+            <text x="420" y="535" font-size="12" fill="green">T</text>
+            
+            <!-- Node 13 (Decision) -->
+            <circle cx="400" cy="640" r="20" fill="white" stroke="black" stroke-width="2"/>
+            <text x="400" y="645" text-anchor="middle" font-size="14" font-weight="bold">13</text>
+            <line x1="400" y1="590" x2="400" y2="620" stroke="black" stroke-width="2" marker-end="url(#arrowhead)"/>
+            
+            <!-- Node 14 (Return error - unauthorized) -->
+            <circle cx="200" cy="710" r="20" fill="white" stroke="black" stroke-width="2"/>
+            <text x="200" y="715" text-anchor="middle" font-size="14" font-weight="bold">14</text>
+            <line x1="380" y1="640" x2="220" y2="690" stroke="black" stroke-width="2" marker-end="url(#arrowhead)"/>
+            <text x="280" y="665" font-size="12" fill="red">T</text>
+            
+            <!-- Node 15 -->
+            <circle cx="400" cy="710" r="20" fill="white" stroke="black" stroke-width="2"/>
+            <text x="400" y="715" text-anchor="middle" font-size="14" font-weight="bold">15</text>
+            <line x1="400" y1="660" x2="400" y2="690" stroke="black" stroke-width="2" marker-end="url(#arrowhead)"/>
+            <text x="420" y="675" font-size="12" fill="green">T</text>
+            
+            <!-- Node 16 (Decision) -->
+            <circle cx="400" cy="780" r="20" fill="white" stroke="black" stroke-width="2"/>
+            <text x="400" y="785" text-anchor="middle" font-size="14" font-weight="bold">16</text>
+            <line x1="400" y1="730" x2="400" y2="760" stroke="black" stroke-width="2" marker-end="url(#arrowhead)"/>
+            
+            <!-- Node 17 (Return error - not delivered) -->
+            <circle cx="200" cy="850" r="20" fill="white" stroke="black" stroke-width="2"/>
+            <text x="200" y="855" text-anchor="middle" font-size="14" font-weight="bold">17</text>
+            <line x1="380" y1="780" x2="220" y2="830" stroke="black" stroke-width="2" marker-end="url(#arrowhead)"/>
+            <text x="280" y="805" font-size="12" fill="red">T</text>
+            
+            <!-- Node 18 -->
+            <circle cx="400" cy="850" r="20" fill="white" stroke="black" stroke-width="2"/>
+            <text x="400" y="855" text-anchor="middle" font-size="14" font-weight="bold">18</text>
+            <line x1="400" y1="800" x2="400" y2="830" stroke="black" stroke-width="2" marker-end="url(#arrowhead)"/>
+            <text x="420" y="815" font-size="12" fill="green">T</text>
+            
+            <!-- Node 19 (Decision - deliveredAt) -->
+            <circle cx="400" cy="920" r="20" fill="white" stroke="black" stroke-width="2"/>
+            <text x="400" y="925" text-anchor="middle" font-size="14" font-weight="bold">19</text>
+            <line x1="400" y1="870" x2="400" y2="900" stroke="black" stroke-width="2" marker-end="url(#arrowhead)"/>
+            
+            <!-- Node 20 (Set deliveredAt) -->
+            <circle cx="600" cy="920" r="20" fill="white" stroke="black" stroke-width="2"/>
+            <text x="600" y="925" text-anchor="middle" font-size="14" font-weight="bold">20</text>
+            <line x1="420" y1="920" x2="580" y2="920" stroke="black" stroke-width="2" marker-end="url(#arrowhead)"/>
+            <text x="500" y="915" font-size="12" fill="red">T</text>
+            <line x1="600" y1="940" x2="600" y2="960" stroke="black" stroke-width="2"/>
+            <line x1="600" y1="960" x2="420" y2="960" stroke="black" stroke-width="2"/>
+            <line x1="420" y1="960" x2="420" y2="980" stroke="black" stroke-width="2" marker-end="url(#arrowhead)"/>
+            
+            <!-- Node 21 -->
+            <circle cx="400" cy="990" r="20" fill="white" stroke="black" stroke-width="2"/>
+            <text x="400" y="995" text-anchor="middle" font-size="14" font-weight="bold">21</text>
+            <line x1="400" y1="940" x2="400" y2="970" stroke="black" stroke-width="2" marker-end="url(#arrowhead)"/>
+            <text x="420" y="955" font-size="12" fill="green">T</text>
+            
+            <!-- Node 22 (Decision - expiryDate) -->
+            <circle cx="400" cy="1060" r="20" fill="white" stroke="black" stroke-width="2"/>
+            <text x="400" y="1065" text-anchor="middle" font-size="14" font-weight="bold">22</text>
+            <line x1="400" y1="1010" x2="400" y2="1040" stroke="black" stroke-width="2" marker-end="url(#arrowhead)"/>
+            
+            <!-- Node 23 (Return error - expired) -->
+            <circle cx="200" cy="1130" r="20" fill="white" stroke="black" stroke-width="2"/>
+            <text x="200" y="1135" text-anchor="middle" font-size="14" font-weight="bold">23</text>
+            <line x1="380" y1="1060" x2="220" y2="1110" stroke="black" stroke-width="2" marker-end="url(#arrowhead)"/>
+            <text x="280" y="1085" font-size="12" fill="red">T</text>
+            
+            <!-- Node 24 -->
+            <circle cx="400" cy="1130" r="20" fill="white" stroke="black" stroke-width="2"/>
+            <text x="400" y="1135" text-anchor="middle" font-size="14" font-weight="bold">24</text>
+            <line x1="400" y1="1080" x2="400" y2="1110" stroke="black" stroke-width="2" marker-end="url(#arrowhead)"/>
+            <text x="420" y="1095" font-size="12" fill="green">T</text>
+            
+            <!-- Node 25 (Decision - productInOrder) -->
+            <circle cx="400" cy="1200" r="20" fill="white" stroke="black" stroke-width="2"/>
+            <text x="400" y="1205" text-anchor="middle" font-size="14" font-weight="bold">25</text>
+            <line x1="400" y1="1150" x2="400" y2="1180" stroke="black" stroke-width="2" marker-end="url(#arrowhead)"/>
+            
+            <!-- Node 26 (Return error - product not in order) -->
+            <circle cx="200" cy="1270" r="20" fill="white" stroke="black" stroke-width="2"/>
+            <text x="200" y="1275" text-anchor="middle" font-size="14" font-weight="bold">26</text>
+            <line x1="380" y1="1200" x2="220" y2="1250" stroke="black" stroke-width="2" marker-end="url(#arrowhead)"/>
+            <text x="280" y="1225" font-size="12" fill="red">T</text>
+            
+            <!-- Node 27 -->
+            <circle cx="400" cy="1270" r="20" fill="white" stroke="black" stroke-width="2"/>
+            <text x="400" y="1275" text-anchor="middle" font-size="14" font-weight="bold">27</text>
+            <line x1="400" y1="1220" x2="400" y2="1250" stroke="black" stroke-width="2" marker-end="url(#arrowhead)"/>
+            <text x="420" y="1235" font-size="12" fill="green">T</text>
+            
+            <!-- Node 28 (Decision - existingReview) -->
+            <circle cx="400" cy="1340" r="20" fill="white" stroke="black" stroke-width="2"/>
+            <text x="400" y="1345" text-anchor="middle" font-size="14" font-weight="bold">28</text>
+            <line x1="400" y1="1290" x2="400" y2="1320" stroke="black" stroke-width="2" marker-end="url(#arrowhead)"/>
+            
+            <!-- Node 29 (Return error - review exists) -->
+            <circle cx="200" cy="1410" r="20" fill="white" stroke="black" stroke-width="2"/>
+            <text x="200" y="1415" text-anchor="middle" font-size="14" font-weight="bold">29</text>
+            <line x1="380" y1="1340" x2="220" y2="1390" stroke="black" stroke-width="2" marker-end="url(#arrowhead)"/>
+            <text x="280" y="1365" font-size="12" fill="red">T</text>
+            
+            <!-- Node 30 (Decision - req.files) -->
+            <circle cx="400" cy="1410" r="20" fill="white" stroke="black" stroke-width="2"/>
+            <text x="400" y="1415" text-anchor="middle" font-size="14" font-weight="bold">30</text>
+            <line x1="400" y1="1360" x2="400" y2="1390" stroke="black" stroke-width="2" marker-end="url(#arrowhead)"/>
+            <text x="420" y="1375" font-size="12" fill="green">T</text>
+            
+            <!-- Node 31 (Upload images) -->
+            <circle cx="400" cy="1480" r="20" fill="white" stroke="black" stroke-width="2"/>
+            <text x="400" y="1485" text-anchor="middle" font-size="14" font-weight="bold">31</text>
+            <line x1="400" y1="1430" x2="400" y2="1460" stroke="black" stroke-width="2" marker-end="url(#arrowhead)"/>
+            <text x="420" y="1445" font-size="12" fill="green">T</text>
+            
+            <!-- Node 32 -->
+            <circle cx="400" cy="1550" r="20" fill="white" stroke="black" stroke-width="2"/>
+            <text x="400" y="1555" text-anchor="middle" font-size="14" font-weight="bold">32</text>
+            <line x1="400" y1="1500" x2="400" y2="1530" stroke="black" stroke-width="2" marker-end="url(#arrowhead)"/>
+            
+            <!-- Node 33 -->
+            <circle cx="400" cy="1620" r="20" fill="white" stroke="black" stroke-width="2"/>
+            <text x="400" y="1625" text-anchor="middle" font-size="14" font-weight="bold">33</text>
+            <line x1="400" y1="1570" x2="400" y2="1600" stroke="black" stroke-width="2" marker-end="url(#arrowhead)"/>
+            
+            <!-- Node 34 -->
+            <circle cx="400" cy="1690" r="20" fill="white" stroke="black" stroke-width="2"/>
+            <text x="400" y="1695" text-anchor="middle" font-size="14" font-weight="bold">34</text>
+            <line x1="400" y1="1640" x2="400" y2="1670" stroke="black" stroke-width="2" marker-end="url(#arrowhead)"/>
+            
+            <!-- Skip upload path -->
+            <line x1="400" y1="1430" x2="600" y2="1430" stroke="black" stroke-width="2"/>
+            <line x1="600" y1="1430" x2="600" y2="1620" stroke="black" stroke-width="2"/>
+            <line x1="600" y1="1620" x2="420" y2="1620" stroke="black" stroke-width="2" marker-end="url(#arrowhead)"/>
+            <text x="610" y="1425" font-size="12" fill="red">T</text>
+            
+            <!-- End node -->
+            <circle cx="400" cy="1760" r="15" fill="black"/>
+            <circle cx="400" cy="1760" r="20" fill="none" stroke="black" stroke-width="2"/>
+            <text x="400" y="1765" text-anchor="middle" fill="white" font-size="12" font-weight="bold">E</text>
+            <line x1="400" y1="1710" x2="400" y2="1745" stroke="black" stroke-width="2" marker-end="url(#arrowhead)"/>
+            
+            <!-- Error returns to end -->
+            <line x1="200" y1="240" x2="200" y2="1750" stroke="black" stroke-width="2" stroke-dasharray="5,5"/>
+            <line x1="200" y1="1750" x2="385" y2="1750" stroke="black" stroke-width="2" marker-end="url(#arrowhead)"/>
+            
+            <!-- Arrow marker definition -->
+            <defs>
+                <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                    <polygon points="0 0, 10 3, 0 6" fill="black"/>
+                </marker>
+            </defs>
+            </svg>
+        </div>
+        
+        <div style="text-align: left; overflow-y: auto; max-height: 1800px;">
+            <h3>Code các node:</h3>
+            <ol style="font-family: monospace; font-size: 13px; line-height: 1.8; background-color: #f5f5f5; padding: 20px; border-radius: 5px;">
+                <li><strong>Node 1:</strong><pre style="display: inline-block; margin-left: 10px; background-color: #fff; padding: 5px; border-left: 3px solid #3498db;">const { orderId, productId, rating, comment } = req.body</pre></li>
+                <li><strong>Node 2:</strong><pre style="display: inline-block; margin-left: 10px; background-color: #fff; padding: 5px; border-left: 3px solid #3498db;">if (!orderId || !productId || !rating) {</pre></li>
+                <li><strong>Node 3:</strong><pre style="display: inline-block; margin-left: 10px; background-color: #fff; padding: 5px; border-left: 3px solid #3498db;">    return res.status(400).json({ message: "Điểm hài lòng không được để trống" })
+}</pre></li>
+                <li><strong>Node 4:</strong><pre style="display: inline-block; margin-left: 10px; background-color: #fff; padding: 5px; border-left: 3px solid #3498db;">const ratingNum = parseInt(rating)</pre></li>
+                <li><strong>Node 5:</strong><pre style="display: inline-block; margin-left: 10px; background-color: #fff; padding: 5px; border-left: 3px solid #3498db;">if (isNaN(ratingNum) || ratingNum < 1 || ratingNum > 10 || !Number.isInteger(ratingNum)) {</pre></li>
+                <li><strong>Node 6:</strong><pre style="display: inline-block; margin-left: 10px; background-color: #fff; padding: 5px; border-left: 3px solid #3498db;">    return res.status(400).json({ message: "Điểm hài lòng không hợp lệ" })
+}</pre></li>
+                <li><strong>Node 7:</strong><pre style="display: inline-block; margin-left: 10px; background-color: #fff; padding: 5px; border-left: 3px solid #3498db;">if (comment && comment.length > 500) {</pre></li>
+                <li><strong>Node 8:</strong><pre style="display: inline-block; margin-left: 10px; background-color: #fff; padding: 5px; border-left: 3px solid #3498db;">    return res.status(400).json({ message: "Nhận xét không được vượt quá 500 ký tự" })
+}</pre></li>
+                <li><strong>Node 9:</strong><pre style="display: inline-block; margin-left: 10px; background-color: #fff; padding: 5px; border-left: 3px solid #3498db;">const order = await Order.findById(orderId)</pre></li>
+                <li><strong>Node 10:</strong><pre style="display: inline-block; margin-left: 10px; background-color: #fff; padding: 5px; border-left: 3px solid #3498db;">if (!order) {</pre></li>
+                <li><strong>Node 11:</strong><pre style="display: inline-block; margin-left: 10px; background-color: #fff; padding: 5px; border-left: 3px solid #3498db;">    return res.status(404).json({ message: "Đơn hàng không tồn tại" })
+}</pre></li>
+                <li><strong>Node 12:</strong><pre style="display: inline-block; margin-left: 10px; background-color: #fff; padding: 5px; border-left: 3px solid #3498db;">if (order.user.toString() !== req.user._id.toString()) {</pre></li>
+                <li><strong>Node 13:</strong><pre style="display: inline-block; margin-left: 10px; background-color: #fff; padding: 5px; border-left: 3px solid #3498db;">    return res.status(403).json({ message: "Không có quyền đánh giá đơn hàng này" })
+}</pre></li>
+                <li><strong>Node 14:</strong><pre style="display: inline-block; margin-left: 10px; background-color: #fff; padding: 5px; border-left: 3px solid #3498db;">if (order.status !== 'Đã giao') {</pre></li>
+                <li><strong>Node 15:</strong><pre style="display: inline-block; margin-left: 10px; background-color: #fff; padding: 5px; border-left: 3px solid #3498db;">    return res.status(400).json({ message: "Đơn hàng chưa hoàn thành, chưa thể đánh giá" })
+}</pre></li>
+                <li><strong>Node 16:</strong><pre style="display: inline-block; margin-left: 10px; background-color: #fff; padding: 5px; border-left: 3px solid #3498db;">if (!order.deliveredAt) {</pre></li>
+                <li><strong>Node 17:</strong><pre style="display: inline-block; margin-left: 10px; background-color: #fff; padding: 5px; border-left: 3px solid #3498db;">    order.deliveredAt = new Date()
+    await order.save()
+}</pre></li>
+                <li><strong>Node 18:</strong><pre style="display: inline-block; margin-left: 10px; background-color: #fff; padding: 5px; border-left: 3px solid #3498db;">const deliveryDate = new Date(order.deliveredAt)
+const expiryDate = new Date(deliveryDate)
+expiryDate.setDate(expiryDate.getDate() + 14)</pre></li>
+                <li><strong>Node 19:</strong><pre style="display: inline-block; margin-left: 10px; background-color: #fff; padding: 5px; border-left: 3px solid #3498db;">if (new Date() > expiryDate) {</pre></li>
+                <li><strong>Node 20:</strong><pre style="display: inline-block; margin-left: 10px; background-color: #fff; padding: 5px; border-left: 3px solid #3498db;">    return res.status(400).json({ message: "Đơn hàng đã quá thời hạn đánh giá" })
+}</pre></li>
+                <li><strong>Node 21:</strong><pre style="display: inline-block; margin-left: 10px; background-color: #fff; padding: 5px; border-left: 3px solid #3498db;">const productInOrder = order.orderItems.find(
+    item => item.productId.toString() === productId.toString()
+)</pre></li>
+                <li><strong>Node 22:</strong><pre style="display: inline-block; margin-left: 10px; background-color: #fff; padding: 5px; border-left: 3px solid #3498db;">if (!productInOrder) {</pre></li>
+                <li><strong>Node 23:</strong><pre style="display: inline-block; margin-left: 10px; background-color: #fff; padding: 5px; border-left: 3px solid #3498db;">    return res.status(400).json({ message: "Sản phẩm không có trong đơn hàng này" })
+}</pre></li>
+                <li><strong>Node 24:</strong><pre style="display: inline-block; margin-left: 10px; background-color: #fff; padding: 5px; border-left: 3px solid #3498db;">const existingReview = await Review.findOne({
+    user: req.user._id,
+    order: orderId,
+    productId: productId
+})</pre></li>
+                <li><strong>Node 25:</strong><pre style="display: inline-block; margin-left: 10px; background-color: #fff; padding: 5px; border-left: 3px solid #3498db;">if (existingReview) {</pre></li>
+                <li><strong>Node 26:</strong><pre style="display: inline-block; margin-left: 10px; background-color: #fff; padding: 5px; border-left: 3px solid #3498db;">    return res.status(400).json({ message: "Bạn đã đánh giá sản phẩm này trong đơn hàng này rồi" })
+}</pre></li>
+                <li><strong>Node 27:</strong><pre style="display: inline-block; margin-left: 10px; background-color: #fff; padding: 5px; border-left: 3px solid #3498db;">let imageUrls = []</pre></li>
+                <li><strong>Node 28:</strong><pre style="display: inline-block; margin-left: 10px; background-color: #fff; padding: 5px; border-left: 3px solid #3498db;">if (req.files && req.files.length > 0) {</pre></li>
+                <li><strong>Node 29:</strong><pre style="display: inline-block; margin-left: 10px; background-color: #fff; padding: 5px; border-left: 3px solid #3498db;">    try {
+        const uploadPromises = req.files.map(file => streamUpload(file.buffer))
+        const uploadResults = await Promise.all(uploadPromises)
+        imageUrls = uploadResults.map(result => result.secure_url)
+    } catch (uploadError) {
+        console.log('Upload error:', uploadError)
+        return res.status(400).json({ message: "Lỗi khi upload ảnh" })
+    }
+}</pre></li>
+                <li><strong>Node 30:</strong><pre style="display: inline-block; margin-left: 10px; background-color: #fff; padding: 5px; border-left: 3px solid #3498db;">const review = await Review.create({
+    user: req.user._id,
+    order: orderId,
+    productId: productId,
+    rating: ratingNum,
+    comment: comment || '',
+    images: imageUrls
+})</pre></li>
+                <li><strong>Node 31:</strong><pre style="display: inline-block; margin-left: 10px; background-color: #fff; padding: 5px; border-left: 3px solid #3498db;">const populatedReview = await Review.findById(review._id).populate('user', 'name')
+return res.status(201).json(populatedReview)</pre></li>
+            </ol>
+        </div>
+    </div>
+
+    <h2>2. Độ đo C1 và C2</h2>
+    
+    <h3>2.1. Độ đo C1 cho hàm router.post('/', protect, upload.array('images', 5), async (req, res) => {...}):</h3>
+    <div class="coverage">
+        <p><strong>Định nghĩa:</strong> Mỗi câu lệnh được thực hiện ít nhất một lần sau khi chạy các ca kiểm thử. Vì vậy để đạt độ đo C1 cần phải đi qua các đường đi sau:</p>
+        <ul style="font-family: monospace; font-size: 14px; line-height: 2;">
+            <li>+ 1,2,3</li>
+            <li>+ 1,2,4,5,6</li>
+            <li>+ 1,2,4,5,7,8</li>
+            <li>+ 1,2,4,5,7,9,10,11</li>
+            <li>+ 1,2,4,5,7,9,10,12,13,14</li>
+            <li>+ 1,2,4,5,7,9,10,12,15,16,17</li>
+            <li>+ 1,2,4,5,7,9,10,12,15,16,18,19,20,21,22,23</li>
+            <li>+ 1,2,4,5,7,9,10,12,15,16,18,21,22,24,25,26</li>
+            <li>+ 1,2,4,5,7,9,10,12,15,16,18,21,22,24,25,27,28,29</li>
+            <li>+ 1,2,4,5,7,9,10,12,15,16,18,21,22,24,25,27,28,30,31,32,33,34</li>
+            <li>+ 1,2,4,5,7,9,10,12,15,16,18,21,22,24,25,27,28,30,33,34</li>
+        </ul>
+        <p><strong>Tổng số câu lệnh:</strong> 34 câu lệnh (từ node 1 đến node 34)</p>
+        <p><strong>Số đường đi tối thiểu để đạt C1:</strong> 11 đường đi</p>
+    </div>
+    
+    <h3>2.2. Độ đo C2 cho hàm router.post('/', protect, upload.array('images', 5), async (req, res) => {...}):</h3>
+    <div class="coverage">
+        <p><strong>Định nghĩa:</strong> Các điểm quyết định trong đồ thị dòng điều khiển của đơn vị kiểm thử đều được thực hiện ít nhất một lần ở cả hai nhánh đúng sai.</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Điểm quyết định</th>
+                    <th>Điều kiện tương ứng</th>
+                    <th>Đúng (T)</th>
+                    <th>Sai (F)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>2</td>
+                    <td class="test-case">if (!orderId || !productId || !rating)</td>
+                    <td>Test case đi qua đường: 1,2,3</td>
+                    <td>Test case đi qua đường: 1,2,4,5,7,9,10,12,15,16,18,21,22,24,25,27,28,30,33,34</td>
+                </tr>
+                <tr>
+                    <td>5</td>
+                    <td class="test-case">if (isNaN(ratingNum) || ratingNum < 1 || ratingNum > 10 || !Number.isInteger(ratingNum))</td>
+                    <td>Test case đi qua đường: 1,2,4,5,6</td>
+                    <td>Test case đi qua đường: 1,2,4,5,7,9,10,12,15,16,18,21,22,24,25,27,28,30,33,34</td>
+                </tr>
+                <tr>
+                    <td>7</td>
+                    <td class="test-case">if (comment && comment.length > 500)</td>
+                    <td>Test case đi qua đường: 1,2,4,5,7,8</td>
+                    <td>Test case đi qua đường: 1,2,4,5,7,9,10,12,15,16,18,21,22,24,25,27,28,30,33,34</td>
+                </tr>
+                <tr>
+                    <td>10</td>
+                    <td class="test-case">if (!order)</td>
+                    <td>Test case đi qua đường: 1,2,4,5,7,9,10,11</td>
+                    <td>Test case đi qua đường: 1,2,4,5,7,9,10,12,15,16,18,21,22,24,25,27,28,30,33,34</td>
+                </tr>
+                <tr>
+                    <td>13</td>
+                    <td class="test-case">if (order.user.toString() !== req.user._id.toString())</td>
+                    <td>Test case đi qua đường: 1,2,4,5,7,9,10,12,13,14</td>
+                    <td>Test case đi qua đường: 1,2,4,5,7,9,10,12,15,16,18,21,22,24,25,27,28,30,33,34</td>
+                </tr>
+                <tr>
+                    <td>16</td>
+                    <td class="test-case">if (order.status !== 'Đã giao')</td>
+                    <td>Test case đi qua đường: 1,2,4,5,7,9,10,12,15,16,17</td>
+                    <td>Test case đi qua đường: 1,2,4,5,7,9,10,12,15,16,18,21,22,24,25,27,28,30,33,34</td>
+                </tr>
+                <tr>
+                    <td>19</td>
+                    <td class="test-case">if (!order.deliveredAt)</td>
+                    <td>Test case đi qua đường: 1,2,4,5,7,9,10,12,15,16,18,19,20,21,22,24,25,27,28,30,33,34</td>
+                    <td>Test case đi qua đường: 1,2,4,5,7,9,10,12,15,16,18,21,22,24,25,27,28,30,33,34</td>
+                </tr>
+                <tr>
+                    <td>22</td>
+                    <td class="test-case">if (new Date() > expiryDate)</td>
+                    <td>Test case đi qua đường: 1,2,4,5,7,9,10,12,15,16,18,21,22,23</td>
+                    <td>Test case đi qua đường: 1,2,4,5,7,9,10,12,15,16,18,21,22,24,25,27,28,30,33,34</td>
+                </tr>
+                <tr>
+                    <td>25</td>
+                    <td class="test-case">if (!productInOrder)</td>
+                    <td>Test case đi qua đường: 1,2,4,5,7,9,10,12,15,16,18,21,22,24,25,26</td>
+                    <td>Test case đi qua đường: 1,2,4,5,7,9,10,12,15,16,18,21,22,24,25,27,28,30,33,34</td>
+                </tr>
+                <tr>
+                    <td>28</td>
+                    <td class="test-case">if (existingReview)</td>
+                    <td>Test case đi qua đường: 1,2,4,5,7,9,10,12,15,16,18,21,22,24,25,27,28,29</td>
+                    <td>Test case đi qua đường: 1,2,4,5,7,9,10,12,15,16,18,21,22,24,25,27,28,30,33,34</td>
+                </tr>
+                <tr>
+                    <td>30</td>
+                    <td class="test-case">if (req.files && req.files.length > 0)</td>
+                    <td>Test case đi qua đường: 1,2,4,5,7,9,10,12,15,16,18,21,22,24,25,27,28,30,31,32,33,34</td>
+                    <td>Test case đi qua đường: 1,2,4,5,7,9,10,12,15,16,18,21,22,24,25,27,28,30,33,34</td>
+                </tr>
+            </tbody>
+        </table>
+        <p><strong>Tổng số điểm quyết định:</strong> 11 điểm quyết định</p>
+        <p><strong>Tổng số nhánh:</strong> 22 nhánh (11 điểm × 2 nhánh mỗi điểm: T và F)</p>
+    </div>
+
+    <h2>3. Bảng Test Case kiểm thử dòng điều khiển</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>TC ID</th>
+                <th>Mô tả</th>
+                <th>Input</th>
+                <th>Đường đi (Path)</th>
+                <th>Kỳ vọng</th>
+                <th>C1</th>
+                <th>C2</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>TC-CF-01</td>
+                <td>Thiếu orderId</td>
+                <td class="test-case">orderId: null, productId: "123", rating: "5"</td>
+                <td>1 → 2(NO) → RETURN 400</td>
+                <td>400: "Điểm hài lòng không được để trống"</td>
+                <td>✓</td>
+                <td>✓</td>
+            </tr>
+            <tr>
+                <td>TC-CF-02</td>
+                <td>Thiếu productId</td>
+                <td class="test-case">orderId: "123", productId: null, rating: "5"</td>
+                <td>1 → 2(NO) → RETURN 400</td>
+                <td>400: "Điểm hài lòng không được để trống"</td>
+                <td>✓</td>
+                <td>✓</td>
+            </tr>
+            <tr>
+                <td>TC-CF-03</td>
+                <td>Thiếu rating</td>
+                <td class="test-case">orderId: "123", productId: "456", rating: null</td>
+                <td>1 → 2(NO) → RETURN 400</td>
+                <td>400: "Điểm hài lòng không được để trống"</td>
+                <td>✓</td>
+                <td>✓</td>
+            </tr>
+            <tr>
+                <td>TC-CF-04</td>
+                <td>Rating không hợp lệ - < 1</td>
+                <td class="test-case">orderId: "123", productId: "456", rating: "0"</td>
+                <td>1 → 2(YES) → 3 → 4(NO) → RETURN 400</td>
+                <td>400: "Điểm hài lòng không hợp lệ"</td>
+                <td>✓</td>
+                <td>✓</td>
+            </tr>
+            <tr>
+                <td>TC-CF-05</td>
+                <td>Rating không hợp lệ - > 10</td>
+                <td class="test-case">orderId: "123", productId: "456", rating: "11"</td>
+                <td>1 → 2(YES) → 3 → 4(NO) → RETURN 400</td>
+                <td>400: "Điểm hài lòng không hợp lệ"</td>
+                <td>✓</td>
+                <td>✓</td>
+            </tr>
+            <tr>
+                <td>TC-CF-06</td>
+                <td>Rating không hợp lệ - không phải số</td>
+                <td class="test-case">orderId: "123", productId: "456", rating: "abc"</td>
+                <td>1 → 2(YES) → 3 → 4(NO) → RETURN 400</td>
+                <td>400: "Điểm hài lòng không hợp lệ"</td>
+                <td>✓</td>
+                <td>✓</td>
+            </tr>
+            <tr>
+                <td>TC-CF-07</td>
+                <td>Comment quá dài (>500 ký tự)</td>
+                <td class="test-case">orderId: "123", productId: "456", rating: "5", comment: "a"*501</td>
+                <td>1 → 2(YES) → 3 → 4(YES) → 5(YES) → RETURN 400</td>
+                <td>400: "Nhận xét không được vượt quá 500 ký tự"</td>
+                <td>✓</td>
+                <td>✓</td>
+            </tr>
+            <tr>
+                <td>TC-CF-08</td>
+                <td>Order không tồn tại</td>
+                <td class="test-case">orderId: "invalid", productId: "456", rating: "5"</td>
+                <td>1 → 2(YES) → 3 → 4(YES) → 5(NO) → 6 → 7(NO) → RETURN 404</td>
+                <td>404: "Đơn hàng không tồn tại"</td>
+                <td>✓</td>
+                <td>✓</td>
+            </tr>
+            <tr>
+                <td>TC-CF-09</td>
+                <td>User không sở hữu order</td>
+                <td class="test-case">orderId: "123", productId: "456", rating: "5", user khác</td>
+                <td>1 → 2(YES) → 3 → 4(YES) → 5(NO) → 6 → 7(YES) → 8(NO) → RETURN 403</td>
+                <td>403: "Không có quyền đánh giá đơn hàng này"</td>
+                <td>✓</td>
+                <td>✓</td>
+            </tr>
+            <tr>
+                <td>TC-CF-10</td>
+                <td>Order chưa giao</td>
+                <td class="test-case">orderId: "123", productId: "456", rating: "5", status: "Đang xử lý"</td>
+                <td>1 → 2(YES) → 3 → 4(YES) → 5(NO) → 6 → 7(YES) → 8(YES) → 9(NO) → RETURN 400</td>
+                <td>400: "Đơn hàng chưa hoàn thành, chưa thể đánh giá"</td>
+                <td>✓</td>
+                <td>✓</td>
+            </tr>
+            <tr>
+                <td>TC-CF-11</td>
+                <td>Order đã giao nhưng chưa có deliveredAt</td>
+                <td class="test-case">orderId: "123", productId: "456", rating: "5", status: "Đã giao", deliveredAt: null</td>
+                <td>1 → 2(YES) → 3 → 4(YES) → 5(NO) → 6 → 7(YES) → 8(YES) → 9(YES) → 10(NO) → Set deliveredAt → 11 → 12 → ...</td>
+                <td>Tiếp tục xử lý</td>
+                <td>✓</td>
+                <td>✓</td>
+            </tr>
+            <tr>
+                <td>TC-CF-12</td>
+                <td>Đơn hàng quá thời hạn đánh giá (>14 ngày)</td>
+                <td class="test-case">orderId: "123", productId: "456", rating: "5", deliveredAt: 15 ngày trước</td>
+                <td>1 → 2(YES) → 3 → 4(YES) → 5(NO) → 6 → 7(YES) → 8(YES) → 9(YES) → 10(YES) → 11 → 12(YES) → RETURN 400</td>
+                <td>400: "Đơn hàng đã quá thời hạn đánh giá"</td>
+                <td>✓</td>
+                <td>✓</td>
+            </tr>
+            <tr>
+                <td>TC-CF-13</td>
+                <td>Sản phẩm không có trong đơn hàng</td>
+                <td class="test-case">orderId: "123", productId: "999", rating: "5"</td>
+                <td>1 → 2(YES) → 3 → 4(YES) → 5(NO) → 6 → 7(YES) → 8(YES) → 9(YES) → 10(YES) → 11 → 12(NO) → 13 → 14(NO) → RETURN 400</td>
+                <td>400: "Sản phẩm không có trong đơn hàng này"</td>
+                <td>✓</td>
+                <td>✓</td>
+            </tr>
+            <tr>
+                <td>TC-CF-14</td>
+                <td>Đã đánh giá rồi</td>
+                <td class="test-case">orderId: "123", productId: "456", rating: "5", existingReview tồn tại</td>
+                <td>1 → 2(YES) → 3 → 4(YES) → 5(NO) → 6 → 7(YES) → 8(YES) → 9(YES) → 10(YES) → 11 → 12(NO) → 13 → 14(YES) → 15 → 16(YES) → RETURN 400</td>
+                <td>400: "Bạn đã đánh giá sản phẩm này trong đơn hàng này rồi"</td>
+                <td>✓</td>
+                <td>✓</td>
+            </tr>
+            <tr>
+                <td>TC-CF-15</td>
+                <td>Upload ảnh thành công</td>
+                <td class="test-case">orderId: "123", productId: "456", rating: "5", có files</td>
+                <td>1 → 2(YES) → 3 → 4(YES) → 5(NO) → 6 → 7(YES) → 8(YES) → 9(YES) → 10(YES) → 11 → 12(NO) → 13 → 14(YES) → 15 → 16(NO) → 17(YES) → 18(SUCCESS) → 19 → 20 → 21 → 22</td>
+                <td>201: Review được tạo thành công</td>
+                <td>✓</td>
+                <td>✓</td>
+            </tr>
+            <tr>
+                <td>TC-CF-16</td>
+                <td>Upload ảnh thất bại</td>
+                <td class="test-case">orderId: "123", productId: "456", rating: "5", có files (lỗi upload)</td>
+                <td>1 → 2(YES) → 3 → 4(YES) → 5(NO) → 6 → 7(YES) → 8(YES) → 9(YES) → 10(YES) → 11 → 12(NO) → 13 → 14(YES) → 15 → 16(NO) → 17(YES) → 18(ERROR) → RETURN 400</td>
+                <td>400: "Lỗi khi upload ảnh"</td>
+                <td>✓</td>
+                <td>✓</td>
+            </tr>
+            <tr>
+                <td>TC-CF-17</td>
+                <td>Không upload ảnh - thành công</td>
+                <td class="test-case">orderId: "123", productId: "456", rating: "5", không có files</td>
+                <td>1 → 2(YES) → 3 → 4(YES) → 5(NO) → 6 → 7(YES) → 8(YES) → 9(YES) → 10(YES) → 11 → 12(NO) → 13 → 14(YES) → 15 → 16(NO) → 17(NO) → 20 → 21 → 22</td>
+                <td>201: Review được tạo thành công</td>
+                <td>✓</td>
+                <td>✓</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>4. Biểu đồ dòng dữ liệu (Data Flow Diagram)</h2>
+    <div class="diagram">
+        <pre style="font-family: monospace; font-size: 12px;">
+    [INPUT: orderId, productId, rating, comment, req.files, req.user._id]
+      |
+      v
+    [DEFINE: ratingNum = parseInt(rating)]
+      |
+      v
+    [USE: ratingNum trong validation]
+      |
+      v
+    [DEFINE: order = await Order.findById(orderId)]
+      |
+      v
+    [USE: order trong các kiểm tra (order.user, order.status, order.deliveredAt, order.orderItems)]
+      |
+      v
+    [DEFINE: deliveryDate = new Date(order.deliveredAt)]
+      |
+      v
+    [DEFINE: expiryDate = new Date(deliveryDate) + 14 ngày]
+      |
+      v
+    [USE: expiryDate trong kiểm tra thời hạn]
+      |
+      v
+    [DEFINE: productInOrder = order.orderItems.find(...)]
+      |
+      v
+    [USE: productInOrder trong kiểm tra]
+      |
+      v
+    [DEFINE: existingReview = await Review.findOne(...)]
+      |
+      v
+    [USE: existingReview trong kiểm tra]
+      |
+      v
+    [DEFINE: imageUrls = []]
+      |
+      v
+    [USE: req.files trong upload]
+      |
+      v
+    [DEFINE: imageUrls = uploadResults.map(...)]
+      |
+      v
+    [USE: imageUrls trong tạo review]
+      |
+      v
+    [DEFINE: review = await Review.create({user, order, productId, rating, comment, images})]
+      |
+      v
+    [USE: review trong populate và return]
+      |
+      v
+    [OUTPUT: populatedReview]
+        </pre>
+    </div>
+
+    <h2>5. Bảng các điều kiện và p-use của các cạnh</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Biến</th>
+                <th>Định nghĩa (DEF)</th>
+                <th>Sử dụng vị ngữ (P-USE)</th>
+                <th>Cạnh (Edge)</th>
+                <th>Điều kiện</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>orderId</td>
+                <td>D1: Input từ req.body</td>
+                <td>P1: Node 2 - !orderId</td>
+                <td>D1 → P1</td>
+                <td>orderId === null || orderId === undefined</td>
+            </tr>
+            <tr>
+                <td>productId</td>
+                <td>D2: Input từ req.body</td>
+                <td>P2: Node 2 - !productId</td>
+                <td>D2 → P2</td>
+                <td>productId === null || productId === undefined</td>
+            </tr>
+            <tr>
+                <td>rating</td>
+                <td>D3: Input từ req.body</td>
+                <td>P3: Node 2 - !rating</td>
+                <td>D3 → P3</td>
+                <td>rating === null || rating === undefined</td>
+            </tr>
+            <tr>
+                <td>ratingNum</td>
+                <td>D4: Node 3 - parseInt(rating)</td>
+                <td>P4: Node 4 - ratingNum validation</td>
+                <td>D4 → P4</td>
+                <td>isNaN(ratingNum) || ratingNum < 1 || ratingNum > 10 || !Number.isInteger(ratingNum)</td>
+            </tr>
+            <tr>
+                <td>comment</td>
+                <td>D5: Input từ req.body</td>
+                <td>P5: Node 5 - comment.length > 500</td>
+                <td>D5 → P5</td>
+                <td>comment && comment.length > 500</td>
+            </tr>
+            <tr>
+                <td>order</td>
+                <td>D6: Node 6 - await Order.findById(orderId)</td>
+                <td>P6: Node 7 - !order</td>
+                <td>D6 → P6</td>
+                <td>order === null || order === undefined</td>
+            </tr>
+            <tr>
+                <td>order.user</td>
+                <td>D7: Từ order object</td>
+                <td>P7: Node 8 - order.user !== req.user._id</td>
+                <td>D7 → P7</td>
+                <td>order.user.toString() !== req.user._id.toString()</td>
+            </tr>
+            <tr>
+                <td>order.status</td>
+                <td>D8: Từ order object</td>
+                <td>P8: Node 9 - order.status !== 'Đã giao'</td>
+                <td>D8 → P8</td>
+                <td>order.status !== 'Đã giao'</td>
+            </tr>
+            <tr>
+                <td>order.deliveredAt</td>
+                <td>D9: Từ order object</td>
+                <td>P9: Node 10 - !order.deliveredAt</td>
+                <td>D9 → P9</td>
+                <td>order.deliveredAt === null || order.deliveredAt === undefined</td>
+            </tr>
+            <tr>
+                <td>deliveryDate</td>
+                <td>D10: Node 11 - new Date(order.deliveredAt)</td>
+                <td>P10: Node 11 - Tính expiryDate</td>
+                <td>D10 → P10</td>
+                <td>N/A (computation use)</td>
+            </tr>
+            <tr>
+                <td>expiryDate</td>
+                <td>D11: Node 11 - deliveryDate + 14 ngày</td>
+                <td>P11: Node 12 - new Date() > expiryDate</td>
+                <td>D11 → P11</td>
+                <td>new Date() > expiryDate</td>
+            </tr>
+            <tr>
+                <td>productInOrder</td>
+                <td>D12: Node 13 - order.orderItems.find(...)</td>
+                <td>P12: Node 14 - !productInOrder</td>
+                <td>D12 → P12</td>
+                <td>productInOrder === null || productInOrder === undefined</td>
+            </tr>
+            <tr>
+                <td>existingReview</td>
+                <td>D13: Node 15 - await Review.findOne(...)</td>
+                <td>P13: Node 16 - existingReview tồn tại</td>
+                <td>D13 → P13</td>
+                <td>existingReview !== null && existingReview !== undefined</td>
+            </tr>
+            <tr>
+                <td>req.files</td>
+                <td>D14: Input từ request</td>
+                <td>P14: Node 17 - req.files && req.files.length > 0</td>
+                <td>D14 → P14</td>
+                <td>req.files && req.files.length > 0</td>
+            </tr>
+            <tr>
+                <td>imageUrls</td>
+                <td>D15: Node 19 - uploadResults.map(...)</td>
+                <td>P15: Node 20 - Tạo review với images</td>
+                <td>D15 → P15</td>
+                <td>N/A (computation use)</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>6. Bảng Test Case kiểm thử dòng dữ liệu - All-p-use</h2>
+    <p><strong>All-p-use:</strong> Mỗi biến phải có ít nhất một test case đi qua mỗi cạnh từ định nghĩa (DEF) đến sử dụng vị ngữ (P-USE).</p>
+    <table>
+        <thead>
+            <tr>
+                <th>TC ID</th>
+                <th>Biến</th>
+                <th>DEF Node</th>
+                <th>P-USE Node</th>
+                <th>Đường đi (Path)</th>
+                <th>Input</th>
+                <th>Kỳ vọng</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>TC-DF-01</td>
+                <td>orderId</td>
+                <td>D1</td>
+                <td>P1</td>
+                <td>1 → 2(NO)</td>
+                <td class="test-case">orderId: null, productId: "123", rating: "5"</td>
+                <td>400: "Điểm hài lòng không được để trống"</td>
+            </tr>
+            <tr>
+                <td>TC-DF-02</td>
+                <td>productId</td>
+                <td>D2</td>
+                <td>P2</td>
+                <td>1 → 2(NO)</td>
+                <td class="test-case">orderId: "123", productId: null, rating: "5"</td>
+                <td>400: "Điểm hài lòng không được để trống"</td>
+            </tr>
+            <tr>
+                <td>TC-DF-03</td>
+                <td>rating</td>
+                <td>D3</td>
+                <td>P3</td>
+                <td>1 → 2(NO)</td>
+                <td class="test-case">orderId: "123", productId: "456", rating: null</td>
+                <td>400: "Điểm hài lòng không được để trống"</td>
+            </tr>
+            <tr>
+                <td>TC-DF-04</td>
+                <td>ratingNum</td>
+                <td>D4</td>
+                <td>P4 (TRUE)</td>
+                <td>1 → 2(YES) → 3 → 4(NO)</td>
+                <td class="test-case">orderId: "123", productId: "456", rating: "0"</td>
+                <td>400: "Điểm hài lòng không hợp lệ"</td>
+            </tr>
+            <tr>
+                <td>TC-DF-05</td>
+                <td>ratingNum</td>
+                <td>D4</td>
+                <td>P4 (FALSE)</td>
+                <td>1 → 2(YES) → 3 → 4(YES) → 5</td>
+                <td class="test-case">orderId: "123", productId: "456", rating: "5"</td>
+                <td>Tiếp tục xử lý</td>
+            </tr>
+            <tr>
+                <td>TC-DF-06</td>
+                <td>comment</td>
+                <td>D5</td>
+                <td>P5 (TRUE)</td>
+                <td>1 → 2(YES) → 3 → 4(YES) → 5(YES)</td>
+                <td class="test-case">orderId: "123", productId: "456", rating: "5", comment: "a"*501</td>
+                <td>400: "Nhận xét không được vượt quá 500 ký tự"</td>
+            </tr>
+            <tr>
+                <td>TC-DF-07</td>
+                <td>comment</td>
+                <td>D5</td>
+                <td>P5 (FALSE)</td>
+                <td>1 → 2(YES) → 3 → 4(YES) → 5(NO) → 6</td>
+                <td class="test-case">orderId: "123", productId: "456", rating: "5", comment: "Good"</td>
+                <td>Tiếp tục xử lý</td>
+            </tr>
+            <tr>
+                <td>TC-DF-08</td>
+                <td>order</td>
+                <td>D6</td>
+                <td>P6 (TRUE)</td>
+                <td>1 → 2(YES) → 3 → 4(YES) → 5(NO) → 6 → 7(NO)</td>
+                <td class="test-case">orderId: "invalid", productId: "456", rating: "5"</td>
+                <td>404: "Đơn hàng không tồn tại"</td>
+            </tr>
+            <tr>
+                <td>TC-DF-09</td>
+                <td>order</td>
+                <td>D6</td>
+                <td>P6 (FALSE)</td>
+                <td>1 → 2(YES) → 3 → 4(YES) → 5(NO) → 6 → 7(YES) → 8</td>
+                <td class="test-case">orderId: "123", productId: "456", rating: "5", order tồn tại</td>
+                <td>Tiếp tục xử lý</td>
+            </tr>
+            <tr>
+                <td>TC-DF-10</td>
+                <td>order.user</td>
+                <td>D7</td>
+                <td>P7 (TRUE)</td>
+                <td>1 → 2(YES) → 3 → 4(YES) → 5(NO) → 6 → 7(YES) → 8(NO)</td>
+                <td class="test-case">orderId: "123", productId: "456", rating: "5", user khác</td>
+                <td>403: "Không có quyền đánh giá đơn hàng này"</td>
+            </tr>
+            <tr>
+                <td>TC-DF-11</td>
+                <td>order.user</td>
+                <td>D7</td>
+                <td>P7 (FALSE)</td>
+                <td>1 → 2(YES) → 3 → 4(YES) → 5(NO) → 6 → 7(YES) → 8(YES) → 9</td>
+                <td class="test-case">orderId: "123", productId: "456", rating: "5", user đúng</td>
+                <td>Tiếp tục xử lý</td>
+            </tr>
+            <tr>
+                <td>TC-DF-12</td>
+                <td>order.status</td>
+                <td>D8</td>
+                <td>P8 (TRUE)</td>
+                <td>1 → 2(YES) → 3 → 4(YES) → 5(NO) → 6 → 7(YES) → 8(YES) → 9(NO)</td>
+                <td class="test-case">orderId: "123", productId: "456", rating: "5", status: "Đang xử lý"</td>
+                <td>400: "Đơn hàng chưa hoàn thành, chưa thể đánh giá"</td>
+            </tr>
+            <tr>
+                <td>TC-DF-13</td>
+                <td>order.status</td>
+                <td>D8</td>
+                <td>P8 (FALSE)</td>
+                <td>1 → 2(YES) → 3 → 4(YES) → 5(NO) → 6 → 7(YES) → 8(YES) → 9(YES) → 10</td>
+                <td class="test-case">orderId: "123", productId: "456", rating: "5", status: "Đã giao"</td>
+                <td>Tiếp tục xử lý</td>
+            </tr>
+            <tr>
+                <td>TC-DF-14</td>
+                <td>order.deliveredAt</td>
+                <td>D9</td>
+                <td>P9 (TRUE)</td>
+                <td>1 → 2(YES) → 3 → 4(YES) → 5(NO) → 6 → 7(YES) → 8(YES) → 9(YES) → 10(NO)</td>
+                <td class="test-case">orderId: "123", productId: "456", rating: "5", deliveredAt: null</td>
+                <td>Set deliveredAt và tiếp tục</td>
+            </tr>
+            <tr>
+                <td>TC-DF-15</td>
+                <td>order.deliveredAt</td>
+                <td>D9</td>
+                <td>P9 (FALSE)</td>
+                <td>1 → 2(YES) → 3 → 4(YES) → 5(NO) → 6 → 7(YES) → 8(YES) → 9(YES) → 10(YES) → 11</td>
+                <td class="test-case">orderId: "123", productId: "456", rating: "5", deliveredAt: có giá trị</td>
+                <td>Tiếp tục xử lý</td>
+            </tr>
+            <tr>
+                <td>TC-DF-16</td>
+                <td>expiryDate</td>
+                <td>D11</td>
+                <td>P11 (TRUE)</td>
+                <td>1 → 2(YES) → 3 → 4(YES) → 5(NO) → 6 → 7(YES) → 8(YES) → 9(YES) → 10(YES) → 11 → 12(YES)</td>
+                <td class="test-case">orderId: "123", productId: "456", rating: "5", deliveredAt: 15 ngày trước</td>
+                <td>400: "Đơn hàng đã quá thời hạn đánh giá"</td>
+            </tr>
+            <tr>
+                <td>TC-DF-17</td>
+                <td>expiryDate</td>
+                <td>D11</td>
+                <td>P11 (FALSE)</td>
+                <td>1 → 2(YES) → 3 → 4(YES) → 5(NO) → 6 → 7(YES) → 8(YES) → 9(YES) → 10(YES) → 11 → 12(NO) → 13</td>
+                <td class="test-case">orderId: "123", productId: "456", rating: "5", deliveredAt: 5 ngày trước</td>
+                <td>Tiếp tục xử lý</td>
+            </tr>
+            <tr>
+                <td>TC-DF-18</td>
+                <td>productInOrder</td>
+                <td>D12</td>
+                <td>P12 (TRUE)</td>
+                <td>1 → 2(YES) → 3 → 4(YES) → 5(NO) → 6 → 7(YES) → 8(YES) → 9(YES) → 10(YES) → 11 → 12(NO) → 13 → 14(NO)</td>
+                <td class="test-case">orderId: "123", productId: "999", rating: "5"</td>
+                <td>400: "Sản phẩm không có trong đơn hàng này"</td>
+            </tr>
+            <tr>
+                <td>TC-DF-19</td>
+                <td>productInOrder</td>
+                <td>D12</td>
+                <td>P12 (FALSE)</td>
+                <td>1 → 2(YES) → 3 → 4(YES) → 5(NO) → 6 → 7(YES) → 8(YES) → 9(YES) → 10(YES) → 11 → 12(NO) → 13 → 14(YES) → 15</td>
+                <td class="test-case">orderId: "123", productId: "456", rating: "5", product có trong order</td>
+                <td>Tiếp tục xử lý</td>
+            </tr>
+            <tr>
+                <td>TC-DF-20</td>
+                <td>existingReview</td>
+                <td>D13</td>
+                <td>P13 (TRUE)</td>
+                <td>1 → 2(YES) → 3 → 4(YES) → 5(NO) → 6 → 7(YES) → 8(YES) → 9(YES) → 10(YES) → 11 → 12(NO) → 13 → 14(YES) → 15 → 16(YES)</td>
+                <td class="test-case">orderId: "123", productId: "456", rating: "5", existingReview tồn tại</td>
+                <td>400: "Bạn đã đánh giá sản phẩm này trong đơn hàng này rồi"</td>
+            </tr>
+            <tr>
+                <td>TC-DF-21</td>
+                <td>existingReview</td>
+                <td>D13</td>
+                <td>P13 (FALSE)</td>
+                <td>1 → 2(YES) → 3 → 4(YES) → 5(NO) → 6 → 7(YES) → 8(YES) → 9(YES) → 10(YES) → 11 → 12(NO) → 13 → 14(YES) → 15 → 16(NO) → 17</td>
+                <td class="test-case">orderId: "123", productId: "456", rating: "5", existingReview không tồn tại</td>
+                <td>Tiếp tục xử lý</td>
+            </tr>
+            <tr>
+                <td>TC-DF-22</td>
+                <td>req.files</td>
+                <td>D14</td>
+                <td>P14 (TRUE)</td>
+                <td>1 → 2(YES) → 3 → 4(YES) → 5(NO) → 6 → 7(YES) → 8(YES) → 9(YES) → 10(YES) → 11 → 12(NO) → 13 → 14(YES) → 15 → 16(NO) → 17(YES) → 18</td>
+                <td class="test-case">orderId: "123", productId: "456", rating: "5", có files</td>
+                <td>Upload images</td>
+            </tr>
+            <tr>
+                <td>TC-DF-23</td>
+                <td>req.files</td>
+                <td>D14</td>
+                <td>P14 (FALSE)</td>
+                <td>1 → 2(YES) → 3 → 4(YES) → 5(NO) → 6 → 7(YES) → 8(YES) → 9(YES) → 10(YES) → 11 → 12(NO) → 13 → 14(YES) → 15 → 16(NO) → 17(NO) → 20</td>
+                <td class="test-case">orderId: "123", productId: "456", rating: "5", không có files</td>
+                <td>Bỏ qua upload, tạo review</td>
+            </tr>
+            <tr>
+                <td>TC-DF-24</td>
+                <td>imageUrls</td>
+                <td>D15</td>
+                <td>P15</td>
+                <td>1 → 2(YES) → 3 → 4(YES) → 5(NO) → 6 → 7(YES) → 8(YES) → 9(YES) → 10(YES) → 11 → 12(NO) → 13 → 14(YES) → 15 → 16(NO) → 17(YES) → 18(SUCCESS) → 19 → 20</td>
+                <td class="test-case">orderId: "123", productId: "456", rating: "5", có files, upload thành công</td>
+                <td>201: Review được tạo với images</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>7. Tóm tắt độ bao phủ</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Độ đo</th>
+                <th>Số lượng</th>
+                <th>Đã kiểm thử</th>
+                <th>Tỷ lệ (%)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>C1 - Statement Coverage</td>
+                <td>34 câu lệnh</td>
+                <td>34</td>
+                <td>100%</td>
+            </tr>
+            <tr>
+                <td>C2 - Branch Coverage</td>
+                <td>22 nhánh (11 điều kiện × 2)</td>
+                <td>22</td>
+                <td>100%</td>
+            </tr>
+            <tr>
+                <td>All-p-use Coverage</td>
+                <td>24 cạnh DEF → P-USE</td>
+                <td>24</td>
+                <td>100%</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <footer style="margin-top: 50px; padding-top: 20px; border-top: 1px solid #ddd; color: #777; text-align: center;">
+        <p>Tài liệu kiểm thử hộp trắng - Chức năng đánh giá đơn hàng</p>
+        <p>Ngày tạo: <script>document.write(new Date().toLocaleDateString('vi-VN'))</script></p>
+    </footer>
+</body>
+</html>
