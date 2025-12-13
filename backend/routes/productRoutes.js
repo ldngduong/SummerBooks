@@ -60,15 +60,17 @@ router.put("/:id", protect, admin, async (req, res) => {
     const product = await Product.findById(req.params.id);
 
     if (product) {
-      product.name = name || product.name;
-      product.description = description || product.description;
-      product.price = price || product.price;
-      product.countOfPage = countOfPage || product.countOfPage;
-      product.countInStock = countInStock || product.countInStock;
-      product.category = category || product.category;
-      product.images = images || product.images;
-      product.author = author || product.author;
-      product.publishedAt = publishedAt || product.publishedAt;
+      // Chỉ cập nhật các trường được cung cấp, nhưng vẫn validate tất cả các trường bắt buộc
+      if (name !== undefined) product.name = name;
+      if (description !== undefined) product.description = description;
+      if (price !== undefined) product.price = price;
+      if (countOfPage !== undefined) product.countOfPage = countOfPage;
+      if (countInStock !== undefined) product.countInStock = countInStock;
+      if (category !== undefined) product.category = category;
+      if (images !== undefined) product.images = images;
+      if (author !== undefined) product.author = author;
+      if (publishedAt !== undefined) product.publishedAt = publishedAt;
+      
       const updatedProduct = await product.save();
       res.status(200).json(updatedProduct);
     } else {
