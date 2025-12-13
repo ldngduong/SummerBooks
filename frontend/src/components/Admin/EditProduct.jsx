@@ -6,6 +6,7 @@ import { productDetails, updateProduct } from "../../redux/slices/adminProductSl
 import Loading from "../Common/Loading";
 import axios from "axios";
 import { toast } from "sonner";
+import { fetchShopManager } from "../../redux/slices/shopManagerSlice";
 
 const EditProduct = () => {
   const navigate = useNavigate();
@@ -19,7 +20,7 @@ const EditProduct = () => {
   const [formData, setFormData] = useState({
     name: "",
     description: "",
-    price: 0,
+    price: "",
     countOfPage: 0,
     category: "",
     publishedAt: '2025-01-01',
@@ -27,60 +28,283 @@ const EditProduct = () => {
     images: [],
     countInStock: 0,
   });
+  const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    dispatch(fetchShopManager());
+  }, [dispatch]);
 
   useEffect(() => {
     dispatch(productDetails({ id }));
   }, [dispatch, id]);
 
+  // Hàm format số với dấu chấm phân cách hàng nghìn
+  const formatPrice = (value) => {
+    if (!value) return '';
+    // Loại bỏ tất cả ký tự không phải số
+    const numericValue = value.toString().replace(/\D/g, '');
+    if (!numericValue) return '';
+    // Format với dấu chấm phân cách hàng nghìn
+    return numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  };
+
+  // Hàm unformat (loại bỏ dấu chấm) để lấy giá trị số
+  const unformatPrice = (value) => {
+    return value.toString().replace(/\./g, '');
+  };
+
   useEffect(() => {
     if (selectedProduct) {
+      const stockValue = selectedProduct.countInStock || 0;
       setFormData({
         name: selectedProduct.name || "",
         description: selectedProduct.description || "",
-        price: selectedProduct.price || 0,
+        price: formatPrice(selectedProduct.price || 0),
         category: selectedProduct.category || "",
         countOfPage: selectedProduct.countOfPage || "",
         publishedAt: new Date(selectedProduct.publishedAt).toISOString().split('T')[0] || [],
         images: selectedProduct.images || [],
-        countInStock: selectedProduct.countInStock || 0,
-        author: selectedProduct.author || 0,
+        countInStock: stockValue,
+        author: selectedProduct.author || "",
       });
+      
+      // Validate số lượng tồn kho khi load dữ liệu
+      if (stockValue <= 0) {
+        setErrors(prev => ({ ...prev, countInStock: "Số lượng tồn kho tối thiểu là 1" }));
+      } else {
+        setErrors(prev => ({ ...prev, countInStock: "" }));
+      }
     }
   }, [selectedProduct]);
 
   const handleFormChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    const newErrors = { ...errors };
+    
+    // Xử lý đặc biệt cho trường giá tiền
+    if (name === 'price') {
+      const formattedValue = formatPrice(value);
+      setFormData({ ...formData, [name]: formattedValue });
+      
+      // Validate real-time cho giá
+      const priceValue = unformatPrice(formattedValue);
+      if (priceValue === '') {
+        newErrors.price = "Vui lòng nhập đầy đủ thông tin";
+      } else {
+        const priceNum = Number(priceValue);
+        if (isNaN(priceNum) || priceNum <= 0 || !Number.isInteger(priceNum)) {
+          newErrors.price = "Giá trị không hợp lệ";
+        } else if (priceNum < 1000) {
+          newErrors.price = "Giá bán tối thiểu là 1.000 VNĐ";
+        } else {
+          newErrors.price = "";
+        }
+      }
+    } else if (name === 'countOfPage') {
+      // Chặn số âm cho số trang
+      const numericValue = value.replace(/[^0-9]/g, '');
+      if (numericValue === '') {
+        setFormData({ ...formData, [name]: '' });
+        newErrors.countOfPage = "Vui lòng nhập đầy đủ thông tin";
+      } else if (numericValue === '0') {
+        setFormData({ ...formData, [name]: 0 });
+        newErrors.countOfPage = "Số trang tối thiểu là 24 trang";
+      } else {
+        const num = Number(numericValue);
+        setFormData({ ...formData, [name]: num });
+        // Validate real-time
+        if (num < 24) {
+          newErrors.countOfPage = "Số trang tối thiểu là 24 trang";
+        } else {
+          newErrors.countOfPage = "";
+        }
+      }
+    } else if (name === 'countInStock') {
+      // Cho phép nhập để validate real-time
+      const numericValue = value.replace(/[^0-9]/g, '');
+      if (numericValue === '') {
+        setFormData({ ...formData, [name]: '' });
+        newErrors.countInStock = "Vui lòng nhập đầy đủ thông tin";
+      } else {
+        const num = Number(numericValue);
+        setFormData({ ...formData, [name]: num });
+        // Validate real-time: nếu < 1 thì hiển thị lỗi
+        if (num < 1) {
+          newErrors.countInStock = "Số lượng tồn kho tối thiểu là 1";
+        } else {
+          newErrors.countInStock = "";
+        }
+      }
+    } else if (name === 'name') {
+      setFormData({ ...formData, [name]: value });
+      // Validate real-time cho tên sách
+      if (!value || value.trim() === "") {
+        newErrors.name = "Vui lòng nhập đầy đủ thông tin";
+      } else if (value.trim().length > 250) {
+        newErrors.name = "Tên sách không được vượt quá 250 ký tự";
+      } else {
+        newErrors.name = "";
+      }
+    } else if (name === 'description') {
+      setFormData({ ...formData, [name]: value });
+      // Validate real-time cho mô tả
+      if (!value || value.trim() === "") {
+        newErrors.description = "Vui lòng nhập đầy đủ thông tin";
+      } else if (value.trim().length > 2000) {
+        newErrors.description = "Mô tả không được vượt quá 2000 ký tự";
+      } else {
+        newErrors.description = "";
+      }
+    } else if (name === 'author') {
+      setFormData({ ...formData, [name]: value });
+      // Validate real-time cho tác giả
+      if (!value || value.trim() === "") {
+        newErrors.author = "Vui lòng nhập đầy đủ thông tin";
+      } else {
+        const authorTrimmed = value.trim();
+        if (authorTrimmed.length < 3) {
+          newErrors.author = "Tác giả phải có tối thiểu 3 ký tự";
+        } else if (authorTrimmed.length > 50) {
+          newErrors.author = "Tác giả không được vượt quá 50 ký tự";
+        } else {
+          newErrors.author = "";
+        }
+      }
+    } else if (name === 'category') {
+      setFormData({ ...formData, [name]: value });
+      // Validate real-time cho thể loại
+      if (!value || value === "") {
+        newErrors.category = "Vui lòng nhập đầy đủ thông tin";
+      } else {
+        newErrors.category = "";
+      }
+    } else if (name === 'publishedAt') {
+      setFormData({ ...formData, [name]: value });
+      // Validate real-time cho ngày xuất bản
+      if (!value || value === "") {
+        newErrors.publishedAt = "Vui lòng nhập đầy đủ thông tin";
+      } else {
+        newErrors.publishedAt = "";
+      }
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
+    
+    setErrors(newErrors);
+  };
+
+  // Handler để ngăn tooltip HTML5 validation
+  const handleInvalid = (e) => {
+    e.preventDefault();
+    const { name, value } = e.target;
+    if (name === 'countInStock') {
+      const num = Number(value);
+      if (num < 1) {
+        setErrors({ ...errors, [name]: "Số lượng tồn kho tối thiểu là 1" });
+      }
+    }
   };
 
 
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-    const isFormInvalid = Object.values(formData).some(
-          (value) => value === "" || value === null
-        ) || formData.images.length === 0;
-        if(formData.countInStock < 0){
-          toast.error("Số lượng tồn kho không hợp lệ!");
-          return;
-        }
-        if(formData.countOfPage < 0){
-          toast.error("Số lượng trang không hợp lệ!");
-          return;
-        }
-        if(formData.price < 0){
-          toast.error("Giá bán không hợp lệ!");
-          return;
-        }
-        if (isFormInvalid) {
-          toast.error("Vui lòng điền đầy đủ thông tin!");
-          return;
-        }
-    
+    const newErrors = {};
+
+    // Validation cho Tên sách: Bắt buộc, chuỗi ký tự, độ dài không quá 250 ký tự
+    if (!formData.name || formData.name.trim() === "") {
+      newErrors.name = "Vui lòng nhập đầy đủ thông tin";
+    } else if (formData.name.trim().length >= 250) {
+      newErrors.name = "Tên sách không được vượt quá 250 ký tự";
+    }
+
+    // Validation cho Giá bán: Bắt buộc, số tự nhiên, > 1000 VNĐ
+    const priceValue = formData.price ? unformatPrice(formData.price.toString()) : '';
+    if (priceValue === "" || priceValue === null || priceValue === undefined) {
+      newErrors.price = "Vui lòng nhập đầy đủ thông tin";
+    } else {
+      const priceNum = Number(priceValue);
+      if (isNaN(priceNum) || priceNum <= 0 || !Number.isInteger(priceNum)) {
+        newErrors.price = "Giá trị không hợp lệ";
+      } else if (priceNum < 1000) {
+        newErrors.price = "Giá bán tối thiểu là 1.000 VNĐ";
+      }
+    }
+
+    // Validation cho Tác giả: Bắt buộc, chuỗi ký tự, tối thiểu 3 ký tự và tối đa 50 ký tự
+    if (!formData.author || formData.author.trim() === "") {
+      newErrors.author = "Vui lòng nhập đầy đủ thông tin";
+    } else {
+      const authorTrimmed = formData.author.trim();
+      if (authorTrimmed.length < 3) {
+        newErrors.author = "Tác giả phải có tối thiểu 3 ký tự";
+      } else if (authorTrimmed.length > 50) {
+        newErrors.author = "Tác giả không được vượt quá 50 ký tự";
+      }
+    }
+
+    // Validation cho Mô tả: Bắt buộc, chuỗi ký tự, độ dài không quá 2000 ký tự
+    if (!formData.description || formData.description.trim() === "") {
+      newErrors.description = "Vui lòng nhập đầy đủ thông tin";
+    } else if (formData.description.trim().length > 2000) {
+      newErrors.description = "Mô tả không được vượt quá 2000 ký tự";
+    }
+
+    // Validation cho Thể loại: Bắt buộc, là một trong các lựa chọn từ danh sách
+    if (!formData.category || formData.category === "") {
+      newErrors.category = "Vui lòng nhập đầy đủ thông tin";
+    }
+
+    // Validation cho Số trang: Bắt buộc, số tự nhiên, tối thiểu 24 trang
+    if (formData.countOfPage === "" || formData.countOfPage === null || formData.countOfPage === undefined) {
+      newErrors.countOfPage = "Vui lòng nhập đầy đủ thông tin";
+    } else {
+      const pageNum = Number(formData.countOfPage);
+      if (isNaN(pageNum) || pageNum < 0 || !Number.isInteger(pageNum)) {
+        newErrors.countOfPage = "Giá trị không hợp lệ";
+      } else if (pageNum < 24) {
+        newErrors.countOfPage = "Số trang tối thiểu là 24 trang";
+      }
+    }
+
+    // Validation cho Ngày xuất bản: Bắt buộc, định dạng ngày
+    if (!formData.publishedAt || formData.publishedAt === "") {
+      newErrors.publishedAt = "Vui lòng nhập đầy đủ thông tin";
+    }
+
+    // Validation cho Số lượng tồn kho: Bắt buộc, số tự nhiên, > 0
+    if (formData.countInStock === "" || formData.countInStock === null || formData.countInStock === undefined) {
+      newErrors.countInStock = "Vui lòng nhập đầy đủ thông tin";
+    } else {
+      const stockNum = Number(formData.countInStock);
+      if (isNaN(stockNum) || stockNum <= 0 || !Number.isInteger(stockNum)) {
+        newErrors.countInStock = "Số lượng tồn kho tối thiểu là 1";
+      }
+    }
+
+    // Validation cho Ảnh: Bắt buộc có ít nhất 1 ảnh
+    if (formData.images.length === 0) {
+      newErrors.images = "Vui lòng nhập đầy đủ thông tin";
+    }
+
+    setErrors(newErrors);
+
+    // Nếu có lỗi, dừng lại
+    if (Object.keys(newErrors).length > 0) {
+      return;
+    }
     
     if(uploading){
       return toast.error('Đang tải lên ảnh, chưa thể lưu!')
     }
-    dispatch(updateProduct({id, productData: formData}))
+    
+    // Chuẩn bị dữ liệu để gửi (unformat giá tiền)
+    const submitData = {
+      ...formData,
+      price: formData.price ? Number(unformatPrice(formData.price.toString())) : 0
+    };
+    
+    dispatch(updateProduct({id, productData: submitData}))
   };
 
   const handleImageUpload = async (e) => {
@@ -104,6 +328,10 @@ const EditProduct = () => {
         ...prevData,
         images: [...prevData.images, { url: data.imageUrl, altText: "" }],
       }));
+      // Xóa lỗi ảnh khi thêm ảnh thành công
+      if (errors.images) {
+        setErrors({ ...errors, images: "" });
+      }
       setUploading(false);
     } catch (error) {
       console.log(error);
@@ -120,6 +348,7 @@ const EditProduct = () => {
       <form
         className={`w-full p-3 rounded-lg shadow-lg font-semibold`}
         onSubmit={handleFormSubmit}
+        noValidate
       >
         <div className="mb-4 w-full">
           <label className="text-sm text-gray-600 block mb-1">
@@ -129,10 +358,15 @@ const EditProduct = () => {
             name="name"
             onChange={handleFormChange}
             value={formData.name}
-            className="border-gray-600 border w-full p-2 rounded-lg"
+            className={`border w-full p-2 rounded-lg ${
+              errors.name ? "border-red-500" : "border-gray-600"
+            }`}
             type="text"
             required
           />
+          {errors.name && (
+            <p className="text-red-500 text-sm mt-1">{errors.name}</p>
+          )}
         </div>
         <div className="mb-4 w-full">
           <label className="text-sm text-gray-600 block mb-1">Mô tả</label>
@@ -140,10 +374,15 @@ const EditProduct = () => {
             name="description"
             onChange={handleFormChange}
             value={formData.description}
-            className="border-gray-600 border w-full p-2 rounded-lg"
+            className={`border w-full p-2 rounded-lg ${
+              errors.description ? "border-red-500" : "border-gray-600"
+            }`}
             rows={4}
             required
           ></textarea>
+          {errors.description && (
+            <p className="text-red-500 text-sm mt-1">{errors.description}</p>
+          )}
         </div>
         <div className="mb-4 w-full">
           <label className="text-sm text-gray-600 block mb-1">Giá</label>
@@ -151,10 +390,16 @@ const EditProduct = () => {
             name="price"
             onChange={handleFormChange}
             value={formData.price}
-            className="border-gray-600 border w-full p-2 rounded-lg"
-            type="number"
+            className={`border w-full p-2 rounded-lg ${
+              errors.price ? "border-red-500" : "border-gray-600"
+            }`}
+            type="text"
+            placeholder="1.000"
             required
           />
+          {errors.price && (
+            <p className="text-red-500 text-sm mt-1">{errors.price}</p>
+          )}
         </div>
         <div className="mb-4 w-full">
           <label className="text-sm text-gray-600 block mb-1">
@@ -164,10 +409,16 @@ const EditProduct = () => {
             name="countOfPage"
             onChange={handleFormChange}
             value={formData.countOfPage}
-            className="border-gray-600 border w-full p-2 rounded-lg"
+            className={`border w-full p-2 rounded-lg ${
+              errors.countOfPage ? "border-red-500" : "border-gray-600"
+            }`}
             type="number"
+            min="0"
             required
           />
+          {errors.countOfPage && (
+            <p className="text-red-500 text-sm mt-1">{errors.countOfPage}</p>
+          )}
         </div>
         <div className="mb-4 w-full">
           <label className="text-sm text-gray-600 block mb-1">
@@ -176,11 +427,18 @@ const EditProduct = () => {
           <input
             name="countInStock"
             onChange={handleFormChange}
+            onInvalid={handleInvalid}
             value={formData.countInStock}
-            className="border-gray-600 border w-full p-2 rounded-lg"
+            className={`border w-full p-2 rounded-lg ${
+              errors.countInStock ? "border-red-500" : "border-gray-600"
+            }`}
             type="number"
+            min="1"
             required
           />
+          {errors.countInStock && (
+            <p className="text-red-500 text-sm mt-1">{errors.countInStock}</p>
+          )}
         </div>
         <div className="mb-4 w-full">
           <label className="text-sm text-gray-600 block mb-1">Ngày xuất bản</label>
@@ -188,10 +446,15 @@ const EditProduct = () => {
             name="publishedAt"
             onChange={handleFormChange}
             value={formData.publishedAt}
-            className="border-gray-600 border w-full p-2 rounded-lg"
+            className={`border w-full p-2 rounded-lg ${
+              errors.publishedAt ? "border-red-500" : "border-gray-600"
+            }`}
             type="date"
             required
           />
+          {errors.publishedAt && (
+            <p className="text-red-500 text-sm mt-1">{errors.publishedAt}</p>
+          )}
         </div>
         <div className="mb-4 w-full">
                 <label className="text-sm text-gray-600 block mb-1">
@@ -201,7 +464,9 @@ const EditProduct = () => {
                   name="category"
                   onChange={handleFormChange}
                   value={formData.category || ""}
-                  className="border-gray-600 border w-full p-2 rounded-lg"
+                  className={`border w-full p-2 rounded-lg ${
+                    errors.category ? "border-red-500" : "border-gray-600"
+                  }`}
                 >
                   <option value="" disabled>
                     Chọn thể loại
@@ -212,6 +477,9 @@ const EditProduct = () => {
                     </option>
                   ))}
                 </select>
+                {errors.category && (
+                  <p className="text-red-500 text-sm mt-1">{errors.category}</p>
+                )}
               </div>
         <div className="mb-4 w-full">
           <label className="text-sm text-gray-600 block mb-1">Tác giả</label>
@@ -219,10 +487,15 @@ const EditProduct = () => {
             name="author"
             onChange={handleFormChange}
             value={formData.author}
-            className="border-gray-600 border w-full p-2 rounded-lg"
+            className={`border w-full p-2 rounded-lg ${
+              errors.author ? "border-red-500" : "border-gray-600"
+            }`}
             type="text"
             required
           />
+          {errors.author && (
+            <p className="text-red-500 text-sm mt-1">{errors.author}</p>
+          )}
         </div>
         <div className="mb-4">
           <label className="text-sm text-gray-600 block mb-1">Thêm ảnh</label>
@@ -263,12 +536,16 @@ const EditProduct = () => {
                     className="w-full h-full object-cover rounded-lg"
                   />
                   <button
-                    onClick={() =>
+                    onClick={() => {
                       setFormData({
                         ...formData,
                         images: formData.images.filter((_, i) => i !== index),
-                      })
-                    }
+                      });
+                      // Xóa lỗi ảnh nếu đã có ảnh
+                      if (errors.images && formData.images.length > 1) {
+                        setErrors({ ...errors, images: "" });
+                      }
+                    }}
                     className="text-white absolute top-0 right-0 p-3 font-bold text-2xl rounded-full cursor-pointer"
                   >
                     <FiXCircle />
@@ -279,7 +556,9 @@ const EditProduct = () => {
               <p>Không có hình ảnh</p>
             )}
           </div>
-
+          {errors.images && (
+            <p className="text-red-500 text-sm mt-1">{errors.images}</p>
+          )}
           <input
             hidden
             id="imageUpload"
