@@ -76,6 +76,10 @@ const orderSchema = new mongoose.Schema(
         originalPrice: {
             type: Number,
             required: true
+        },
+        deliveredAt: {
+            type: Date,
+            default: null
         }
     }, 
     {timeseries: true}

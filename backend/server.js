@@ -12,6 +12,7 @@ const adminRoutes = require('./routes/adminRoutes')
 const shopManagerRouter = require('./routes/shopManager')
 const voucherRoutes = require('./routes/voucherRoutes')
 const userVoucherRoutes = require('./routes/userVoucherRoutes')
+const reviewRoutes = require('./routes/reviewRoutes')
 
 const app = express();
 app.use(express.json());
@@ -32,6 +33,7 @@ app.use('/api/products', productRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/reviews', reviewRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/shop-manager', shopManagerRouter);
 app.use('/api/vouchers', voucherRoutes);

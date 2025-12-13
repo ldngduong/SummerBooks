@@ -11,14 +11,17 @@ const OrderConfirmation = () => {
   const navigate = useNavigate()
 
   useEffect(() => {
-    if(checkout && checkout._id){
-        dispatch(clearCart())
-        localStorage.removeItem('cart')
+    // Chỉ xử lý khi không còn loading
+    if (!loading) {
+      if(checkout && checkout._id){
+          dispatch(clearCart())
+          localStorage.removeItem('cart')
+      } else if(checkout === null) {
+          // Chỉ redirect nếu checkout là null (không phải đang loading)
+          navigate('/profile')
+      }
     }
-    else{
-        navigate('/profile')
-    }
-  }, [checkout, dispatch, navigate])
+  }, [checkout, loading, dispatch, navigate])
   
   const calculateEstimatedDelivery = (createdAt) => {
     const orderDate = new Date(createdAt);
@@ -55,7 +58,7 @@ const OrderConfirmation = () => {
                 </div>
                 <div className="p-2 border border-gray-500 rounded-lg">
                     <h4 className="text-lg font-semibold mb-2">Thông tin người nhận</h4>
-                    <p className="text-gray-600 mb-">{checkout.firstName} {checkout.lastName}</p>
+                    <p className="text-gray-600 mb-2">{checkout.name || `${checkout.firstName || ''} ${checkout.lastName || ''}`.trim()}</p>
                     <p className='text-gray-600 mb-2'>{checkout.phone}</p>
                 </div>
             </div>

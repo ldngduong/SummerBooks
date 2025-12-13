@@ -54,17 +54,34 @@ export const addToCart = createAsyncThunk('cart/addToCart', async ({productId, q
 
 export const updateCartItemQuantity = createAsyncThunk('cart/updateCartItemQuantity', async ({productId, quantity, author, userId}, {rejectWithValue}) => {
     try {
-       const product = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/products/${productId}`)
-       if(quantity > product.data.countInStock){
-            return rejectWithValue({ message: 'Số lượng sách trong kho không đủ!' });
-        }
+       // Nếu quantity = 0 (xóa sản phẩm), không cần kiểm tra sản phẩm có tồn tại
+       if (quantity > 0) {
+         try {
+           const product = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/products/${productId}`)
+           if(quantity > product.data.countInStock){
+               return rejectWithValue({ message: 'Số lượng sách trong kho không đủ!' });
+           }
+         } catch (error) {
+           // Nếu sản phẩm không tồn tại và đang cố tăng số lượng, trả về lỗi
+           if (error.response?.status === 404) {
+             // Sản phẩm đã bị xóa, nhưng vẫn cho phép xóa khỏi giỏ hàng
+             // Backend sẽ tự động xóa sản phẩm không tồn tại
+           }
+         }
+       }
+       
        const response = await axios.put(`${import.meta.env.VITE_BACKEND_URL}/api/cart`, {
         productId, quantity, author, userId
        }) 
        return response.data
     } catch (error) {
         console.log(error)
-        return rejectWithValue(error.response.data)
+        // Nếu là lỗi 404 và quantity = 0, có thể sản phẩm đã bị xóa nhưng vẫn cần xóa khỏi cart
+        // Backend đã xử lý việc này, nên nếu có response.data thì vẫn trả về
+        if (error.response?.data && error.response.status !== 500) {
+          return rejectWithValue(error.response.data)
+        }
+        return rejectWithValue(error.response?.data || { message: "Lỗi khi cập nhật giỏ hàng" })
     }
 })
 

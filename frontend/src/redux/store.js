@@ -8,6 +8,7 @@ import adminProductReducer from './slices/adminProductSlice'
 import adminVoucherReducer from './slices/adminVoucherSlice'
 import adminOrderProduct from './slices/adminOrderSlice'
 import shopManager from './slices/shopManagerSlice'
+import reviewReducer from './slices/reviewSlice'
 
 const store = configureStore({
     reducer: {
@@ -19,7 +20,8 @@ const store = configureStore({
         adminProduct: adminProductReducer,
         adminVoucher: adminVoucherReducer,
         adminOrder: adminOrderProduct,
-        shopManager: shopManager
+        shopManager: shopManager,
+        review: reviewReducer
     }
 })
 

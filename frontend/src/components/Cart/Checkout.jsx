@@ -4,7 +4,7 @@ import {useDispatch, useSelector} from 'react-redux'
 import axios from 'axios'
 import { toast } from 'sonner'
 import Loading from '../Common/Loading'
-import { checkout } from '../../redux/slices/cartSlice';
+import { checkout, fetchCart } from '../../redux/slices/cartSlice';
 
 const Checkout = () => {
   const [load, setLoad] = useState(false)
@@ -91,20 +91,36 @@ const Checkout = () => {
     e.preventDefault()
     setLoad(true)
     try {
-        await dispatch(checkout({
+        // Gửi originalPrice (cart.totalPrice) để backend tính lại discount chính xác
+        const originalPrice = typeof cart.totalPrice === 'string' 
+          ? parseFloat(cart.totalPrice.replace(/,/g, '')) 
+          : parseFloat(cart.totalPrice) || 0;
+        
+        const result = await dispatch(checkout({
           user: user._id, 
           orderItems: cart.products, 
           address, 
-          totalPrice: finalPrice || cart.totalPrice, 
+          totalPrice: originalPrice, 
           name: firstName + " " + lastName, 
           phone,
           userVoucherId: selectedVoucher?._id || null
-        }))
-        navigate('/order-confirmation')
-
+        })).unwrap()
+        
+        // Nếu checkout thành công, navigate đến trang xác nhận
+        if (result && result._id) {
+          navigate('/order-confirmation')
+        }
     } catch (error) {
-        console.log(error)
-        toast.error(error?.message || 'Đặt hàng không thành công')
+        console.log('Checkout error:', error)
+        const errorMessage = error?.message || error?.error?.message || 'Đặt hàng không thành công'
+        toast.error(errorMessage)
+        
+        // Nếu có sản phẩm bị xóa, refresh lại giỏ hàng
+        if (error?.removedProducts || errorMessage.includes('không còn tồn tại')) {
+          if (user?._id) {
+            dispatch(fetchCart(user._id))
+          }
+        }
     } finally {
         setLoad(false)
     }

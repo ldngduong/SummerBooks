@@ -7,12 +7,15 @@ import { fetchProductDetails, fetchSimilarProducts } from '../../redux/slices/pr
 import Loading from '../Common/Loading'
 import { useNavigate, useParams } from 'react-router-dom'
 import { addToCart } from '../../redux/slices/cartSlice'
+import { fetchProductReviews } from '../../redux/slices/reviewSlice'
+import ReviewList from '../Review/ReviewList'
 
 const ProductsDetails = ({id}) => {
     const navigate = useNavigate()
   const dispatch = useDispatch()
   const {similarProducts, selectedProduct, loading, error} = useSelector((state) => state.product)
   const {user, guestId} = useSelector((state) => state.auth)
+  const {productReviews, productReviewsLoading} = useSelector((state) => state.review)
   const {id: paramId} = useParams()
   const productId = id || paramId
   
@@ -20,6 +23,7 @@ const ProductsDetails = ({id}) => {
     if (productId) {
       dispatch(fetchSimilarProducts(productId));
       dispatch(fetchProductDetails(productId));
+      dispatch(fetchProductReviews(productId));
     }
     
   }, [dispatch, productId]);
@@ -142,6 +146,7 @@ const ProductsDetails = ({id}) => {
                     )}
                 </div>
             </div>
+            <ReviewList reviews={productReviews} loading={productReviewsLoading} />
             <div className="mt-20">
                 <h2 className='text-2xl text-center font-medium mb-4'>Bạn có thể thích</h2>
                 <ProductGrid products={similarProducts} />
