@@ -46,7 +46,7 @@ const productSchema = new mongoose.Schema(
                 validator: function(v) {
                     return Number.isInteger(v) && v >= 1000;
                 },
-                message: 'Giá bán tối thiểu là 1.000 VNĐ và phải là số nguyên'
+                message: 'Giá bán tối thiểu là 1.000 VNĐ'
             }
         },
         countInStock: {
@@ -57,7 +57,7 @@ const productSchema = new mongoose.Schema(
                 validator: function(v) {
                     return Number.isInteger(v) && v >= 1;
                 },
-                message: 'Số lượng tồn kho tối thiểu là 1 và phải là số nguyên'
+                message: 'Số lượng tồn kho tối thiểu là 1'
             }
         },
         category: {
@@ -78,7 +78,7 @@ const productSchema = new mongoose.Schema(
                 validator: function(v) {
                     return Number.isInteger(v) && v >= 24;
                 },
-                message: 'Số trang tối thiểu là 24 trang và phải là số nguyên'
+                message: 'Số trang tối thiểu là 24 trang'
             }
         },
         images: {
