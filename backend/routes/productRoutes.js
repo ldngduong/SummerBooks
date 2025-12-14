@@ -1,8 +1,55 @@
 const express = require("express");
 const Product = require("../models/Product");
 const { protect, admin } = require("../middleware/authMiddleware");
+const https = require("https");
+const http = require("http");
+const { URL } = require("url");
 
 const router = express.Router();
+
+// Helper function để kiểm tra kích thước ảnh từ URL
+const checkImageSize = (imageUrl) => {
+  return new Promise((resolve) => {
+    try {
+      const parsedUrl = new URL(imageUrl);
+      const client = parsedUrl.protocol === "https:" ? https : http;
+      const maxSize = 25 * 1024 * 1024; // 25MB
+
+      const request = client.request(
+        {
+          method: "HEAD",
+          hostname: parsedUrl.hostname,
+          path: parsedUrl.pathname + parsedUrl.search,
+          protocol: parsedUrl.protocol,
+        },
+        (response) => {
+          const contentLength = response.headers["content-length"];
+          if (contentLength && parseInt(contentLength) > maxSize) {
+            resolve(false);
+          } else {
+            resolve(true);
+          }
+          response.destroy();
+        }
+      );
+
+      request.on("error", () => {
+        // Nếu không thể kiểm tra, cho phép (có thể là URL không hợp lệ hoặc không truy cập được)
+        resolve(true);
+      });
+
+      request.setTimeout(5000, () => {
+        request.destroy();
+        resolve(true); // Timeout, cho phép để không block
+      });
+
+      request.end();
+    } catch (error) {
+      // Nếu URL không hợp lệ, cho phép (sẽ được validate ở chỗ khác)
+      resolve(true);
+    }
+  });
+};
 
 // post /api/products - create new product - private/admin
 router.post("/", protect, admin, async (req, res) => {
@@ -74,15 +121,21 @@ router.post("/", protect, admin, async (req, res) => {
       return res.status(400).json({ message: 'Số trang tối thiểu là 24 trang' });
     }
 
-    // Validation cho Hình ảnh: định dạng JPG, JPEG, PNG, SVG
+    // Validation cho Hình ảnh: định dạng JPG, JPEG, PNG, SVG và kích thước không quá 25MB
     if (Array.isArray(images)) {
-      const allowedExtensions = ['.jpg', '.jpeg', '.png', '.svg'];
+      const allowedTypes = /jpeg|jpg|png|svg/;
       for (const image of images) {
         if (image && image.url) {
           const urlLower = image.url.toLowerCase();
-          const hasValidExtension = allowedExtensions.some(ext => urlLower.includes(ext));
+          const hasValidExtension = allowedTypes.test(urlLower);
           if (!hasValidExtension) {
             return res.status(400).json({ message: 'Hình ảnh phải có định dạng JPG, JPEG, PNG hoặc SVG' });
+          }
+          
+          // Kiểm tra kích thước ảnh
+          const isValidSize = await checkImageSize(image.url);
+          if (!isValidSize) {
+            return res.status(400).json({ message: 'Kích thước hình ảnh không được vượt quá 25MB' });
           }
         }
       }
@@ -209,15 +262,21 @@ router.put("/:id", protect, admin, async (req, res) => {
       }
     }
 
-    // Validation cho Hình ảnh: định dạng JPG, JPEG, PNG, SVG
+    // Validation cho Hình ảnh: định dạng JPG, JPEG, PNG, SVG và kích thước không quá 25MB
     if (images !== undefined && Array.isArray(images)) {
-      const allowedExtensions = ['.jpg', '.jpeg', '.png', '.svg'];
+      const allowedTypes = /jpeg|jpg|png|svg/;
       for (const image of images) {
         if (image && image.url) {
           const urlLower = image.url.toLowerCase();
-          const hasValidExtension = allowedExtensions.some(ext => urlLower.includes(ext));
+          const hasValidExtension = allowedTypes.test(urlLower);
           if (!hasValidExtension) {
             return res.status(400).json({ message: 'Hình ảnh phải có định dạng JPG, JPEG, PNG hoặc SVG' });
+          }
+          
+          // Kiểm tra kích thước ảnh
+          const isValidSize = await checkImageSize(image.url);
+          if (!isValidSize) {
+            return res.status(400).json({ message: 'Kích thước hình ảnh không được vượt quá 25MB' });
           }
         }
       }
