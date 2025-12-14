@@ -35,7 +35,7 @@ export const checkout = createAsyncThunk('cart/checkout', async(checkoutData, {r
         return response.data
     } catch (error) {
         console.log(userToken, 'ok')
-
+        // Trả về cả message và field từ backend
         return rejectWithValue(error.response?.data || { message: "Lỗi không xác định" });
     }
 })

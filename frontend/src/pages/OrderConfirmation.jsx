@@ -58,7 +58,7 @@ const OrderConfirmation = () => {
                 </div>
                 <div className="p-2 border border-gray-500 rounded-lg">
                     <h4 className="text-lg font-semibold mb-2">Thông tin người nhận</h4>
-                    <p className="text-gray-600 mb-2">{checkout.name || `${checkout.firstName || ''} ${checkout.lastName || ''}`.trim()}</p>
+                    <p className="text-gray-600 mb-2">{checkout.name}</p>
                     <p className='text-gray-600 mb-2'>{checkout.phone}</p>
                 </div>
             </div>

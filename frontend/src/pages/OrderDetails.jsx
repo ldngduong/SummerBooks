@@ -77,7 +77,7 @@ const OrderDetails = () => {
                 </div>
                 <div className="p-2 border border-gray-500 rounded-lg">
                     <h4 className="text-lg font-semibold mb-2">Thông tin người nhận</h4>
-                    <p className="text-gray-600 mb-">{orderDetails && orderDetails.name} {orderDetails && orderDetails.lastName}</p>
+                    <p className="text-gray-600 mb-">{orderDetails && orderDetails.name}</p>
                     <p className='text-gray-600 mb-2'>{orderDetails && orderDetails.phone}</p>
                 </div>
             </div>

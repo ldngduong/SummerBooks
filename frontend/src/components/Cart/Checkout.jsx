@@ -18,10 +18,17 @@ const Checkout = () => {
   const [finalPrice, setFinalPrice] = useState(0)
 
   useEffect(() => {
-    if(!user|| !cart || !cart.products || cart.products.length === 0){
-        navigate('/')
+    if(!user){
+        navigate('/login?redirect=checkout')
+        return
     }
-  }, [cart, navigate])
+    if(!cart || !cart.products || cart.products.length === 0){
+        toast.error('Giỏ hàng phải 1 có ít nhất 1 sản phẩm để đặt hàng')
+        setTimeout(() => {
+          navigate('/')
+        }, 1500)
+    }
+  }, [cart, navigate, user])
 
   useEffect(() => {
     if (user && cart && cart.totalPrice) {
@@ -89,6 +96,19 @@ const Checkout = () => {
 
   const handleCreateOrder = async (e) => {
     e.preventDefault()
+    
+    // Reset errors
+    setErrors({ name: '', phone: '', address: '', voucher: '' })
+    
+    // Kiểm tra giỏ hàng trống trước khi submit
+    if (!cart || !cart.products || cart.products.length === 0) {
+      toast.error('Giỏ hàng phải có ít nhất 1 sản phẩm để đặt hàng')
+      setTimeout(() => {
+        navigate('/')
+      }, 1500)
+      return
+    }
+    
     setLoad(true)
     try {
         // Gửi originalPrice (cart.totalPrice) để backend tính lại discount chính xác
@@ -101,7 +121,7 @@ const Checkout = () => {
           orderItems: cart.products, 
           address, 
           totalPrice: originalPrice, 
-          name: firstName + " " + lastName, 
+          name: fullName, 
           phone,
           userVoucherId: selectedVoucher?._id || null
         })).unwrap()
@@ -112,11 +132,31 @@ const Checkout = () => {
         }
     } catch (error) {
         console.log('Checkout error:', error)
-        const errorMessage = error?.message || error?.error?.message || 'Đặt hàng không thành công'
-        toast.error(errorMessage)
+        // Khi dùng .unwrap(), error.payload chứa data từ rejectWithValue
+        const errorData = error?.payload || error
+        const errorMessage = errorData?.message || 'Đặt hàng không thành công'
+        const errorField = errorData?.field
+        
+        // Hiển thị lỗi theo field
+        if (errorField) {
+          setErrors(prev => ({
+            ...prev,
+            [errorField]: errorMessage
+          }))
+        } else {
+          // Nếu không có field, hiển thị toast
+          toast.error(errorMessage)
+        }
+        
+        // Nếu giỏ hàng trống, redirect về trang chủ
+        if (errorMessage.includes('Giỏ hàng phải có ít nhất 1 sản phẩm')) {
+          setTimeout(() => {
+            navigate('/')
+          }, 1500)
+        }
         
         // Nếu có sản phẩm bị xóa, refresh lại giỏ hàng
-        if (error?.removedProducts || errorMessage.includes('không còn tồn tại')) {
+        if (errorData?.removedProducts || errorMessage.includes('không còn tồn tại')) {
           if (user?._id) {
             dispatch(fetchCart(user._id))
           }
@@ -127,16 +167,21 @@ const Checkout = () => {
   }
 
   const [address, setAddress] = useState('')
-  const [firstName, setFirstName] = useState('')
-  const [lastName, setLastName] = useState('')
-  const [phone, setPhone] = useState(0)
+  const [fullName, setFullName] = useState('')
+  const [phone, setPhone] = useState('')
+  const [errors, setErrors] = useState({
+    name: '',
+    phone: '',
+    address: '',
+    voucher: ''
+  })
 
   
   if(loading){
     return <Loading />
   }
   if(!cart || !cart.products || cart.products.length === 0){
-    return <p>Giỏ hàng trống</p>
+    return null
   }
 
   return (
@@ -149,49 +194,55 @@ const Checkout = () => {
                     <label htmlFor="" className='block text-gray-700'>Email</label>
                     <input type="email" value={user? user.email : ''} className='bg-gray-200 w-full p-2 border rounded' disabled/>
                 </div>
-                <div className="mb-4 grid grid-cols-2 gap-4">
-                    <div className="">
-                        <label htmlFor="" className='block text-gray-700'>Họ</label>
-                        <input 
-                            type="text" 
-                            onChange={(e) => setFirstName(e.target.value)} 
-                            value={firstName} 
-                            className='w-full p-2 border rounded'
-                            required
-                        />
-                    </div>
-                    <div className="">
-                        <label htmlFor="" className='block text-gray-700'>Tên</label>
-                        <input 
-                            type="text" 
-                            onChange={(e) => setLastName(e.target.value)} 
-                            value={lastName} 
-                            className='w-full p-2 border rounded'
-                            required
-                        />
-                    </div>
+                <div className="mb-4">
+                    <label htmlFor="" className='block text-gray-700'>Họ và tên</label>
+                    <input 
+                        type="text" 
+                        onChange={(e) => {
+                          setFullName(e.target.value)
+                          if (errors.name) setErrors(prev => ({ ...prev, name: '' }))
+                        }} 
+                        value={fullName} 
+                        className={`w-full p-2 border rounded ${errors.name ? 'border-red-500' : ''}`}
+                        required
+                    />
+                    {errors.name && (
+                      <p className="text-red-500 text-sm mt-1">{errors.name}</p>
+                    )}
                 </div>
                 <div className="mb-4">
                     <label htmlFor="" className='block text-gray-700'>SĐT</label>
                     <input
-                        type="number" 
+                        type="text" 
                         value={phone} 
-                        className='w-full p-2 border rounded'
-                        onChange={(e) => setPhone(e.target.value)} 
+                        className={`w-full p-2 border rounded ${errors.phone ? 'border-red-500' : ''}`}
+                        onChange={(e) => {
+                          setPhone(e.target.value)
+                          if (errors.phone) setErrors(prev => ({ ...prev, phone: '' }))
+                        }} 
                         required
                     />
+                    {errors.phone && (
+                      <p className="text-red-500 text-sm mt-1">{errors.phone}</p>
+                    )}
                 </div>
                 <h3 className='text-lg mb-4'>Địa chỉ</h3>
                 <div className="mb-4">
                     <label htmlFor="" className='block text-gray-700'>Địa chỉ giao hàng</label>
                     <textarea 
-                        onChange={(e) => setAddress(e.target.value)} 
+                        onChange={(e) => {
+                          setAddress(e.target.value)
+                          if (errors.address) setErrors(prev => ({ ...prev, address: '' }))
+                        }} 
                         value={address} 
-                        className='w-full p-2 border rounded'
+                        className={`w-full p-2 border rounded ${errors.address ? 'border-red-500' : ''}`}
                         rows="3"
                         placeholder="Nhập địa chỉ đầy đủ (số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố)"
                         required
                     />
+                    {errors.address && (
+                      <p className="text-red-500 text-sm mt-1">{errors.address}</p>
+                    )}
                 </div>
                 <h3 className='text-lg mb-4 mt-6'>Voucher</h3>
                 <div className="mb-4">
@@ -214,6 +265,9 @@ const Checkout = () => {
                         <p className='text-sm text-green-600 mt-2'>
                             Đã chọn: {selectedVoucher.voucher.code} - Giảm {selectedVoucher.voucher.value}%
                         </p>
+                    )}
+                    {errors.voucher && (
+                      <p className="text-red-500 text-sm mt-2">{errors.voucher}</p>
                     )}
                 </div>
                 {load ? (<Loading />) : (<button className='bg-amber-600 text-white hover:bg-amber-700 border-none transition-all duration-300 w-full px-4 py-2 cursor-pointer rounded-lg'>Đặt hàng</button>)}

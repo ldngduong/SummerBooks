@@ -3,6 +3,7 @@ import { IoMdClose } from 'react-icons/io';
 import CartContents from '../Cart/CartContents';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import { toast } from 'sonner';
 
 const CartDrawer = ({drawerOpen, toggleCartDrawer}) => {
   const navigate = useNavigate();
@@ -10,6 +11,16 @@ const CartDrawer = ({drawerOpen, toggleCartDrawer}) => {
   const {cart} = useSelector((state) => state.cart)
   const userId = user ? user._id : null;
   const handleCheckout = () => {
+    // Kiểm tra giỏ hàng trống
+    if (!cart || !cart.products || cart.products.length === 0) {
+      toast.error('Giỏ hàng phải có ít nhất 1 sản phẩm để đặt hàng')
+      toggleCartDrawer()
+      setTimeout(() => {
+        navigate('/')
+      }, 1500)
+      return
+    }
+    
     toggleCartDrawer()
     if (!user){
       navigate('/login?redirect=checkout')
@@ -35,17 +46,15 @@ const CartDrawer = ({drawerOpen, toggleCartDrawer}) => {
             {cart && cart?.products?.length > 0 ? <CartContents cart = {cart} userId = {userId} guestId = {guestId} /> : (<p>Giỏ hàng trống</p>)}
         </div>
         <div className="p-4 bg-white sticky bottom-0">
+            <button 
+              onClick={handleCheckout}
+              className='w-full bg-amber-600 text-white py-3 rounded-lg font-semibold hover:bg-amber-700 transition duration-300 cursor-pointer'
+            >
+            Mua ngay
+            </button>
             {cart && cart?.products?.length > 0 && (
-              <>
-              <button 
-                onClick={handleCheckout}
-                className='w-full bg-amber-600 text-white py-3 rounded-lg font-semibold hover:bg-amber-700 transition duration-300 cursor-pointer'
-              >
-              Mua ngay
-              </button>
-             <p className='text-xs text-gray-600 mt-2 text-center'>Phí vận chuyển và mã giảm giá sẽ được tính khi thanh toán.</p>
-            </>
-            )} 
+              <p className='text-xs text-gray-600 mt-2 text-center'>Phí vận chuyển và mã giảm giá sẽ được tính khi thanh toán.</p>
+            )}
         </div>
     </div>
   )
