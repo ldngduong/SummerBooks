@@ -214,7 +214,7 @@ const EditProduct = () => {
     // Validation cho Tên sách: Bắt buộc, chuỗi ký tự, độ dài không quá 250 ký tự
     if (!formData.name || formData.name.trim() === "") {
       newErrors.name = "Vui lòng nhập đầy đủ thông tin";
-    } else if (formData.name.trim().length >= 250) {
+    } else if (formData.name.trim().length > 250) {
       newErrors.name = "Tên sách không được vượt quá 250 ký tự";
     }
 
