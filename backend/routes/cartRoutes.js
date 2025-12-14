@@ -18,20 +18,18 @@ const getCart = async (userId) => {
 
 // post /api/cart - add product to cart - public
 router.post("/", async (req, res) => {
-
   const { productId, quantity, author, guestId, userId } = req.body;
-  console.log({ productId, quantity, author, guestId, userId })
+  console.log({ productId, quantity, author, guestId, userId });
   try {
     const product = await Product.findById(productId);
     if (!product)
       return res.status(404).json({ message: "Không tìm thấy sản phẩm" });
 
     let cart = await getCart(userId, guestId);
-    
+
     if (cart) {
       const productIndex = cart.products.findIndex(
-        (p) =>
-          p.productId.toString() === productId
+        (p) => p.productId.toString() === productId
       );
       if (productIndex > -1) {
         cart.products[productIndex].quantity += quantity;
@@ -88,10 +86,9 @@ router.put("/", async (req, res) => {
     }
 
     const productIndex = cart.products.findIndex(
-      (p) =>
-        p.productId.toString() === productId
+      (p) => p.productId.toString() === productId
     );
-    
+
     if (productIndex > -1) {
       // Nếu quantity = 0 hoặc sản phẩm không tồn tại, xóa khỏi giỏ hàng
       if (quantity === 0) {
@@ -105,14 +102,14 @@ router.put("/", async (req, res) => {
         } else {
           // Kiểm tra số lượng có đủ không
           if (product.countInStock < quantity) {
-            return res.status(400).json({ 
-              message: `Sản phẩm ${product.name} chỉ còn ${product.countInStock} sản phẩm trong kho` 
+            return res.status(400).json({
+              message: `Sản phẩm ${product.name} chỉ còn ${product.countInStock} sản phẩm trong kho`,
             });
           }
           cart.products[productIndex].quantity = quantity;
         }
       }
-      
+
       cart.totalPrice = cart.products.reduce(
         (acc, item) => acc + item.price * item.quantity,
         0
@@ -145,7 +142,7 @@ router.get("/", async (req, res) => {
           validProducts.push(item);
         }
       }
-      
+
       // Nếu có sản phẩm bị xóa, cập nhật lại giỏ hàng
       if (validProducts.length !== cart.products.length) {
         cart.products = validProducts;
@@ -155,7 +152,7 @@ router.get("/", async (req, res) => {
         );
         await cart.save();
       }
-      
+
       return res.json(cart);
     } else {
       return res.status(404).json({ message: "Không tìm thấy giỏ hàng" });
@@ -166,18 +163,106 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.post('/checkout', protect, async (req, res) => {
+router.post("/checkout", protect, async (req, res) => {
   try {
-    const { user, orderItems, address, totalPrice, name, phone, userVoucherId } = req.body;
+    const {
+      user,
+      orderItems,
+      address,
+      totalPrice,
+      name,
+      phone,
+      userVoucherId,
+    } = req.body;
 
+    // Validation: Giỏ hàng trống (E14)
     if (!Array.isArray(orderItems) || orderItems.length === 0) {
-      return res.status(400).json({ message: "Danh sách sản phẩm không hợp lệ!" });
+      return res.status(400).json({
+        message: "Giỏ hàng phải có ít nhất 1 sản phẩm để đặt hàng",
+        field: "cart",
+      });
+    }
+
+    // Validation: Họ và tên (E1, E2, E3, E4)
+    if (!name || name.trim() === "") {
+      return res.status(400).json({
+        message: "Họ và tên không được để trống",
+        field: "name",
+      });
+    }
+
+    const nameTrimmed = name.trim();
+    if (!/^[a-zA-ZÀ-ỹ\s]+$/.test(nameTrimmed)) {
+      return res.status(400).json({
+        message: "Họ và tên không được là ký tự số và ký tự đặc biệt",
+        field: "name",
+      });
+    }
+
+    if (nameTrimmed.length > 50) {
+      return res.status(400).json({
+        message: "Họ và tên không được quá 50 ký tự",
+        field: "name",
+      });
+    }
+
+    // Validation: Số điện thoại (E5, E6, E7, E8, E9, E10)
+    if (!phone || phone.toString().trim() === "") {
+      return res.status(400).json({
+        message: "Số điện thoại không được để trống",
+        field: "phone",
+      });
+    }
+
+    const phoneStr = phone.toString().trim();
+    if (!/^\d+$/.test(phoneStr)) {
+      return res.status(400).json({
+        message: "Số điện thoại không được chứa ký tự chữ hoặc ký tự đặc biệt",
+        field: "phone",
+      });
+    }
+
+    if (phoneStr.length !== 10) {
+      return res.status(400).json({
+        message: "Số điện thoại phải gồm đúng 10 chữ số",
+        field: "phone",
+      });
+    }
+
+    if (phoneStr[0] !== "0") {
+      return res.status(400).json({
+        message: "Số điện thoại phải bắt đầu bằng số 0",
+        field: "phone",
+      });
+    }
+
+    // Validation: Địa chỉ (E11, E12, E13)
+    if (!address || address.trim() === "") {
+      return res.status(400).json({
+        message: "Địa chỉ không được để trống",
+        field: "address",
+      });
+    }
+
+    const addressTrimmed = address.trim();
+    if (!/^[a-zA-Z0-9À-ỹ\s,.\/]+$/.test(addressTrimmed)) {
+      return res.status(400).json({
+        message: "Địa chỉ không được chứa ký tự đặc biệt",
+        field: "address",
+      });
+    }
+
+    if (addressTrimmed.length > 100) {
+      return res.status(400).json({
+        message: "Địa chỉ không được quá 100 ký tự",
+        field: "address",
+      });
     }
 
     // Lọc và kiểm tra sản phẩm hợp lệ
     const validOrderItems = [];
     const invalidProducts = [];
-    
+
     for (const item of orderItems) {
       const product = await Product.findById(item.productId);
       if (!product) {
@@ -185,18 +270,22 @@ router.post('/checkout', protect, async (req, res) => {
         continue;
       }
       if (product.countInStock < item.quantity) {
-        return res.status(400).json({ message: `Sản phẩm ${product.name} không đủ hàng. Chỉ còn ${product.countInStock} sản phẩm trong kho` });
+        return res.status(400).json({
+          message: `Sản phẩm ${product.name} không đủ hàng. Chỉ còn ${product.countInStock} sản phẩm trong kho`,
+        });
       }
       validOrderItems.push(item);
     }
 
     // Nếu có sản phẩm không tồn tại, cập nhật giỏ hàng và trả về lỗi
     if (invalidProducts.length > 0) {
-      // Tự động xóa sản phẩm không tồn tại khỏi giỏ hàng
       const cart = await getCart(user);
       if (cart) {
         cart.products = cart.products.filter(
-          (item) => !invalidProducts.some(id => id.toString() === item.productId.toString())
+          (item) =>
+            !invalidProducts.some(
+              (id) => id.toString() === item.productId.toString()
+            )
         );
         cart.totalPrice = cart.products.reduce(
           (acc, item) => acc + item.price * item.quantity,
@@ -204,21 +293,23 @@ router.post('/checkout', protect, async (req, res) => {
         );
         await cart.save();
       }
-      
-      return res.status(400).json({ 
+
+      return res.status(400).json({
         message: `Một số sản phẩm không còn tồn tại đã được xóa khỏi giỏ hàng. Vui lòng kiểm tra lại giỏ hàng.`,
-        removedProducts: invalidProducts
+        removedProducts: invalidProducts,
       });
     }
 
     // Nếu không còn sản phẩm hợp lệ nào
     if (validOrderItems.length === 0) {
-      return res.status(400).json({ message: "Không có sản phẩm hợp lệ để đặt hàng!" });
+      return res
+        .status(400)
+        .json({ message: "Không có sản phẩm hợp lệ để đặt hàng!" });
     }
 
     // Tính toán giá gốc từ danh sách sản phẩm hợp lệ
     const originalPrice = validOrderItems.reduce(
-      (acc, item) => acc + (item.price * item.quantity),
+      (acc, item) => acc + item.price * item.quantity,
       0
     );
     let finalPrice = originalPrice;
@@ -228,36 +319,59 @@ router.post('/checkout', protect, async (req, res) => {
 
     // Xử lý voucher nếu có
     if (userVoucherId) {
-      userVoucher = await UserVoucher.findById(userVoucherId)
-        .populate('voucher');
-      
-      if (!userVoucher || userVoucher.user.toString() !== user.toString()) {
-        return res.status(400).json({ message: "Voucher không hợp lệ" });
-      }
+      userVoucher = await UserVoucher.findById(userVoucherId).populate(
+        "voucher"
+      );
 
-      if (userVoucher.used) {
-        return res.status(400).json({ message: "Voucher đã được sử dụng" });
-      }
+      // // Kiểm tra userVoucher tồn tại và thuộc về user
+      // if (!userVoucher || userVoucher.user.toString() !== user.toString()) {
+      //   return res.status(400).json({
+      //     message: "Mã giảm giá không tồn tại. Vui lòng thử lại sau.",
+      //     field: "voucher",
+      //   });
+      // }
+
+      // // Kiểm tra voucher đã được sử dụng
+      // if (userVoucher.used) {
+      //   return res.status(400).json({
+      //     message: "Mã giảm giá đã được sử dụng",
+      //     field: "voucher",
+      //   });
+      // }
 
       const voucher = userVoucher.voucher;
-      if (!voucher || voucher.status !== 'active') {
-        return res.status(400).json({ message: "Voucher không hợp lệ hoặc đã hết hạn" });
+      // Kiểm tra voucher tồn tại và active
+      if (!voucher || voucher.status !== "active") {
+        return res.status(400).json({
+          message: "Mã giảm giá không tồn tại. Vui lòng thử lại sau.",
+          field: "voucher",
+        });
       }
 
-      // Kiểm tra ngày hết hạn
       const now = new Date();
-      if (new Date(voucher.end_date) < now || new Date(voucher.start_date) > now) {
-        return res.status(400).json({ message: "Voucher đã hết hạn hoặc chưa đến thời gian áp dụng" });
+
+      // Kiểm tra voucher chưa đến hạn
+      if (new Date(voucher.start_date) > now) {
+        return res.status(400).json({
+          message: "Mã giảm giá chưa đến thời gian áp dụng",
+          field: "voucher",
+        });
       }
 
-      // Kiểm tra giá trị đơn hàng tối thiểu
+      // Kiểm tra voucher đã hết hạn hoặc hết lượt sử dụng
+      if (new Date(voucher.end_date) < now || voucher.remain <= 0) {
+        return res.status(400).json({
+          message: "Mã giảm giá đã hết hạn sử dụng",
+          field: "voucher",
+        });
+      }
+
+      // Kiểm tra giá trị đơn hàng tối thiểu (E16)
       if (originalPrice < (voucher.min_order_value || 0)) {
-        return res.status(400).json({ message: `Đơn hàng phải có giá trị tối thiểu ${voucher.min_order_value} VNĐ` });
-      }
-
-      // Kiểm tra lượt sử dụng còn lại
-      if (voucher.remain <= 0) {
-        return res.status(400).json({ message: "Voucher đã hết lượt sử dụng" });
+        return res.status(400).json({
+          message: "Đơn hàng không đủ điều kiện áp dụng mã giảm giá này",
+          field: "voucher",
+        });
       }
 
       // Tính toán giảm giá
@@ -265,7 +379,10 @@ router.post('/checkout', protect, async (req, res) => {
       discountAmount = originalPrice * discountPercent;
 
       // Áp dụng giới hạn giảm tối đa nếu có
-      if (voucher.max_discount_amount && discountAmount > voucher.max_discount_amount) {
+      if (
+        voucher.max_discount_amount &&
+        discountAmount > voucher.max_discount_amount
+      ) {
         discountAmount = voucher.max_discount_amount;
       }
 
@@ -279,7 +396,7 @@ router.post('/checkout', protect, async (req, res) => {
     const newOrder = await Order.create({
       user,
       orderItems: validOrderItems,
-      address,
+      address: addressTrimmed,
       totalPrice: finalPrice,
       originalPrice: originalPrice,
       discountAmount: discountAmount,
@@ -287,8 +404,8 @@ router.post('/checkout', protect, async (req, res) => {
       userVoucher: userVoucherId,
       paidAt: new Date().toISOString(),
       isDelivered: false,
-      name,
-      phone,
+      name: nameTrimmed,
+      phone: phoneStr,
     });
 
     // Đánh dấu voucher đã sử dụng và trừ remain
@@ -296,8 +413,7 @@ router.post('/checkout', protect, async (req, res) => {
       userVoucher.used = true;
       userVoucher.used_at = new Date();
       await userVoucher.save();
-      
-      // Trừ số lượt sử dụng còn lại của voucher
+
       if (voucherId) {
         const voucherToUpdate = await Voucher.findById(voucherId);
         if (voucherToUpdate) {
@@ -308,13 +424,15 @@ router.post('/checkout', protect, async (req, res) => {
     }
 
     // Giảm số lượng sản phẩm trong kho
-    await Promise.all(validOrderItems.map(async (item) => {
-      const product = await Product.findById(item.productId);
-      if (product) {
-        product.countInStock -= item.quantity;
-        await product.save();
-      }
-    }));
+    await Promise.all(
+      validOrderItems.map(async (item) => {
+        const product = await Product.findById(item.productId);
+        if (product) {
+          product.countInStock -= item.quantity;
+          await product.save();
+        }
+      })
+    );
 
     // Xóa giỏ hàng sau khi đặt hàng thành công
     await Cart.findOneAndDelete({ user });
@@ -322,6 +440,13 @@ router.post('/checkout', protect, async (req, res) => {
     return res.status(200).json(newOrder);
   } catch (error) {
     console.error("Lỗi khi tạo đơn hàng:", error);
+    // Xử lý lỗi voucher từ database (E17)
+    if (error.name === "CastError" && error.path === "voucher") {
+      return res.status(400).json({
+        message: "Mã giảm giá không tồn tại. Vui lòng thử lại sau.",
+        field: "voucher",
+      });
+    }
     res.status(500).json({ message: "Lỗi server", error: error.message });
   }
 });

@@ -195,14 +195,14 @@ router.get("/usable", protect, async (req, res) => {
 
       // Kiểm tra còn hạn
       const endDate = new Date(voucher.end_date);
-      const startDate = new Date(voucher.start_date);
       
+      // Voucher hết hạn (end_date < now) → không hiển thị
       if (endDate < now) continue;
-      if (startDate > now) continue;
+      
+      // Voucher chưa đến hạn (start_date > now) → vẫn hiển thị, sẽ kiểm tra khi đặt hàng
 
-      // Kiểm tra giá trị đơn hàng tối thiểu
-      const minOrderValue = voucher.min_order_value || 0;
-      if (orderTotal < minOrderValue) continue;
+      // Bỏ kiểm tra giá trị đơn hàng tối thiểu - để hiển thị tất cả voucher
+      // Validation sẽ được kiểm tra khi đặt hàng
 
       // Kiểm tra còn lượt sử dụng
       if (voucher.remain <= 0) continue;

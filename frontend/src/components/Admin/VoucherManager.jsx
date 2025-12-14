@@ -221,7 +221,11 @@ const VoucherManager = () => {
   }
 
   // Get current vouchers based on active tab
-  const currentVouchers = activeTab === 'active' ? activeVouchers : outOfStockVouchers
+  const currentVouchers = activeTab === 'active' 
+    ? activeVouchers 
+    : activeTab === 'expired' 
+    ? expiredVouchers 
+    : outOfStockVouchers
 
   if(loading){
     return <Loading />
@@ -244,6 +248,16 @@ const VoucherManager = () => {
                         Voucher còn hạn ({activeVouchers.length})
                     </button>
                     <button
+                        onClick={() => setActiveTab('expired')}
+                        className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+                            activeTab === 'expired'
+                                ? 'bg-orange-600 text-white'
+                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        }`}
+                    >
+                        Voucher hết hạn ({expiredVouchers.length})
+                    </button>
+                    <button
                         onClick={() => setActiveTab('outOfStock')}
                         className={`px-4 py-2 rounded-lg font-semibold transition-all ${
                             activeTab === 'outOfStock'
@@ -255,7 +269,11 @@ const VoucherManager = () => {
                     </button>
                 </div>
                 <h2 className='mb-4 font-semibold text-lg'>
-                    {activeTab === 'active' ? 'Danh sách voucher còn hạn' : 'Danh sách voucher hết lượt sử dụng'}
+                    {activeTab === 'active' 
+                        ? 'Danh sách voucher còn hạn' 
+                        : activeTab === 'expired'
+                        ? 'Danh sách voucher hết hạn sử dụng'
+                        : 'Danh sách voucher hết lượt sử dụng'}
                 </h2>
                 <div className="w-full rounded-lg overflow-auto shadow-md">
                     <table className="w-full border-separate border-spacing-0">
@@ -311,13 +329,17 @@ const VoucherManager = () => {
                                             {activeTab === 'active' && (
                                                 <span className='text-gray-300'>|</span>
                                             )}
-                                            <button 
-                                                onClick={() => handleEdit(voucher)} 
-                                                className='text-blue-600 hover:text-blue-800 transition-all duration-200 cursor-pointer'
-                                            >
-                                                Sửa
-                                            </button>
-                                            <span className='text-gray-300'>|</span>
+                                            {activeTab !== 'expired' && (
+                                                <>
+                                                    <button 
+                                                        onClick={() => handleEdit(voucher)} 
+                                                        className='text-blue-600 hover:text-blue-800 transition-all duration-200 cursor-pointer'
+                                                    >
+                                                        Sửa
+                                                    </button>
+                                                    <span className='text-gray-300'>|</span>
+                                                </>
+                                            )}
                                             <button 
                                                 onClick={() => handleDelete(voucher._id)} 
                                                 className='text-red-400 hover:text-red-600 transition-all duration-200 cursor-pointer'
