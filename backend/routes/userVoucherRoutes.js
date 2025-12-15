@@ -182,32 +182,20 @@ router.get("/usable", protect, async (req, res) => {
       .populate('voucher')
       .sort({ createdAt: -1 });
 
-    // Lọc voucher có thể sử dụng
-    const usableVouchers = [];
+    // Trả về tất cả voucher với thông tin có thể sử dụng hay không
+    // Cho phép hiển thị cả voucher chưa đến hạn, chưa đủ điều kiện
+    // Validation sẽ được thực hiện khi đặt hàng
+    const allVouchers = [];
 
     for (const userVoucher of userVouchers) {
       const voucher = userVoucher.voucher;
       
       if (!voucher) continue;
 
-      // Kiểm tra voucher active
+      // Chỉ kiểm tra voucher active (không filter các điều kiện khác)
       if (voucher.status !== 'active') continue;
 
-      // Kiểm tra còn hạn
-      const endDate = new Date(voucher.end_date);
-      
-      // Voucher hết hạn (end_date < now) → không hiển thị
-      if (endDate < now) continue;
-      
-      // Voucher chưa đến hạn (start_date > now) → vẫn hiển thị, sẽ kiểm tra khi đặt hàng
-
-      // Bỏ kiểm tra giá trị đơn hàng tối thiểu - để hiển thị tất cả voucher
-      // Validation sẽ được kiểm tra khi đặt hàng
-
-      // Kiểm tra còn lượt sử dụng
-      if (voucher.remain <= 0) continue;
-
-      usableVouchers.push({
+      allVouchers.push({
         _id: userVoucher._id,
         voucher: {
           _id: voucher._id,
@@ -219,7 +207,7 @@ router.get("/usable", protect, async (req, res) => {
       });
     }
     
-    res.json({ vouchers: usableVouchers });
+    res.json({ vouchers: allVouchers });
   } catch (error) {
     console.error('Error in /api/user-vouchers/usable:', error);
     res.status(500).json({ message: "Lỗi server", error: error.message });

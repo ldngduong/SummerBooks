@@ -259,55 +259,18 @@ router.post("/checkout", protect, async (req, res) => {
       });
     }
 
-    // Lọc và kiểm tra sản phẩm hợp lệ
-    const validOrderItems = [];
-    const invalidProducts = [];
+    // Kiểm tra và lọc sản phẩm hợp lệ
+    const productIds = orderItems.map((item) => item.productId);
+    const products = await Product.find({ _id: { $in: productIds } });
+    const productMap = new Map(products.map((p) => [p._id.toString(), p]));
+    const invalidProducts = orderItems
+      .filter((item) => !productMap.has(item.productId.toString()))
+      .map((item) => item.productId);
+    const validOrderItems = orderItems.filter((item) =>
+      productMap.has(item.productId.toString())
+    );
 
-    for (const item of orderItems) {
-      const product = await Product.findById(item.productId);
-      if (!product) {
-        invalidProducts.push(item.productId);
-        continue;
-      }
-      if (product.countInStock < item.quantity) {
-        return res.status(400).json({
-          message: `Sản phẩm ${product.name} không đủ hàng. Chỉ còn ${product.countInStock} sản phẩm trong kho`,
-        });
-      }
-      validOrderItems.push(item);
-    }
-
-    // Nếu có sản phẩm không tồn tại, cập nhật giỏ hàng và trả về lỗi
-    if (invalidProducts.length > 0) {
-      const cart = await getCart(user);
-      if (cart) {
-        cart.products = cart.products.filter(
-          (item) =>
-            !invalidProducts.some(
-              (id) => id.toString() === item.productId.toString()
-            )
-        );
-        cart.totalPrice = cart.products.reduce(
-          (acc, item) => acc + item.price * item.quantity,
-          0
-        );
-        await cart.save();
-      }
-
-      return res.status(400).json({
-        message: `Một số sản phẩm không còn tồn tại đã được xóa khỏi giỏ hàng. Vui lòng kiểm tra lại giỏ hàng.`,
-        removedProducts: invalidProducts,
-      });
-    }
-
-    // Nếu không còn sản phẩm hợp lệ nào
-    if (validOrderItems.length === 0) {
-      return res
-        .status(400)
-        .json({ message: "Không có sản phẩm hợp lệ để đặt hàng!" });
-    }
-
-    // Tính toán giá gốc từ danh sách sản phẩm hợp lệ
+    // Tính giá và xử lý voucher
     const originalPrice = validOrderItems.reduce(
       (acc, item) => acc + item.price * item.quantity,
       0
@@ -317,56 +280,29 @@ router.post("/checkout", protect, async (req, res) => {
     let voucherId = null;
     let userVoucher = null;
 
-    // Xử lý voucher nếu có
     if (userVoucherId) {
       userVoucher = await UserVoucher.findById(userVoucherId).populate(
         "voucher"
       );
+      const voucher = userVoucher?.voucher;
+      const now = new Date();
 
-      // // Kiểm tra userVoucher tồn tại và thuộc về user
-      // if (!userVoucher || userVoucher.user.toString() !== user.toString()) {
-      //   return res.status(400).json({
-      //     message: "Mã giảm giá không tồn tại. Vui lòng thử lại sau.",
-      //     field: "voucher",
-      //   });
-      // }
-
-      // // Kiểm tra voucher đã được sử dụng
-      // if (userVoucher.used) {
-      //   return res.status(400).json({
-      //     message: "Mã giảm giá đã được sử dụng",
-      //     field: "voucher",
-      //   });
-      // }
-
-      const voucher = userVoucher.voucher;
-      // Kiểm tra voucher tồn tại và active
       if (!voucher || voucher.status !== "active") {
         return res.status(400).json({
           message: "Mã giảm giá không tồn tại. Vui lòng thử lại sau.",
           field: "voucher",
         });
       }
-
-      const now = new Date();
-
-      // Kiểm tra voucher chưa đến hạn
-      if (new Date(voucher.start_date) > now) {
-        return res.status(400).json({
-          message: "Mã giảm giá chưa đến thời gian áp dụng",
-          field: "voucher",
-        });
-      }
-
-      // Kiểm tra voucher đã hết hạn hoặc hết lượt sử dụng
-      if (new Date(voucher.end_date) < now || voucher.remain <= 0) {
+      if (
+        new Date(voucher.end_date) < now ||
+        new Date(voucher.start_date) > now ||
+        voucher.remain <= 0
+      ) {
         return res.status(400).json({
           message: "Mã giảm giá đã hết hạn sử dụng",
           field: "voucher",
         });
       }
-
-      // Kiểm tra giá trị đơn hàng tối thiểu (E16)
       if (originalPrice < (voucher.min_order_value || 0)) {
         return res.status(400).json({
           message: "Đơn hàng không đủ điều kiện áp dụng mã giảm giá này",
@@ -374,21 +310,11 @@ router.post("/checkout", protect, async (req, res) => {
         });
       }
 
-      // Tính toán giảm giá
-      const discountPercent = voucher.value / 100;
-      discountAmount = originalPrice * discountPercent;
-
-      // Áp dụng giới hạn giảm tối đa nếu có
-      if (
-        voucher.max_discount_amount &&
-        discountAmount > voucher.max_discount_amount
-      ) {
-        discountAmount = voucher.max_discount_amount;
-      }
-
-      finalPrice = originalPrice - discountAmount;
-      if (finalPrice < 0) finalPrice = 0;
-
+      discountAmount = Math.min(
+        originalPrice * (voucher.value / 100),
+        voucher.max_discount_amount || Infinity
+      );
+      finalPrice = Math.max(0, originalPrice - discountAmount);
       voucherId = voucher._id;
     }
 
@@ -408,30 +334,21 @@ router.post("/checkout", protect, async (req, res) => {
       phone: phoneStr,
     });
 
-    // Đánh dấu voucher đã sử dụng và trừ remain
+    // Cập nhật voucher và sản phẩm
     if (userVoucher) {
       userVoucher.used = true;
       userVoucher.used_at = new Date();
       await userVoucher.save();
-
-      if (voucherId) {
-        const voucherToUpdate = await Voucher.findById(voucherId);
-        if (voucherToUpdate) {
-          voucherToUpdate.remain = Math.max(0, voucherToUpdate.remain - 1);
-          await voucherToUpdate.save();
-        }
-      }
+      await Voucher.findByIdAndUpdate(voucherId, { $inc: { remain: -1 } });
     }
-
-    // Giảm số lượng sản phẩm trong kho
     await Promise.all(
-      validOrderItems.map(async (item) => {
-        const product = await Product.findById(item.productId);
-        if (product) {
-          product.countInStock -= item.quantity;
-          await product.save();
-        }
-      })
+      validOrderItems.map((item) =>
+        Product.findByIdAndUpdate(
+          item.productId,
+          { $inc: { countInStock: -item.quantity } },
+          { runValidators: false }
+        )
+      )
     );
 
     // Xóa giỏ hàng sau khi đặt hàng thành công
@@ -440,13 +357,6 @@ router.post("/checkout", protect, async (req, res) => {
     return res.status(200).json(newOrder);
   } catch (error) {
     console.error("Lỗi khi tạo đơn hàng:", error);
-    // Xử lý lỗi voucher từ database (E17)
-    if (error.name === "CastError" && error.path === "voucher") {
-      return res.status(400).json({
-        message: "Mã giảm giá không tồn tại. Vui lòng thử lại sau.",
-        field: "voucher",
-      });
-    }
     res.status(500).json({ message: "Lỗi server", error: error.message });
   }
 });
