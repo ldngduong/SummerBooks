@@ -49,20 +49,44 @@ const VoucherManager = () => {
     status: 'active'
   })
 
-  const validateVoucherCode = (code) => {
-    // Format: 4 chữ cái + 4 chữ số (ví dụ: ABCD1234)
-    const codePattern = /^[A-Z]{4}[0-9]{4}$/
-    return codePattern.test(code.toUpperCase())
-  }
+  const [errors, setErrors] = useState({
+    code: '',
+    value: '',
+    start_date: '',
+    end_date: '',
+    remain: '',
+    max_discount_amount: '',
+    min_order_value: '',
+    status: ''
+  })
+
+  const [editErrors, setEditErrors] = useState({
+    code: '',
+    value: '',
+    start_date: '',
+    end_date: '',
+    remain: '',
+    max_discount_amount: '',
+    min_order_value: '',
+    status: ''
+  })
 
   const handleFormChange = (e) => {
-    const value = e.target.name === 'code' ? e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8) : e.target.value
+    const value = e.target.value
     setFormData({...formData, [e.target.name]: value})
+    // Clear error when user types
+    if (errors[e.target.name]) {
+      setErrors(prev => ({ ...prev, [e.target.name]: '' }))
+    }
   }
 
   const handleEditFormChange = (e) => {
-    const value = e.target.name === 'code' ? e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8) : e.target.value
+    const value = e.target.value
     setEditFormData({...editFormData, [e.target.name]: value})
+    // Clear error when user types
+    if (editErrors[e.target.name]) {
+      setEditErrors(prev => ({ ...prev, [e.target.name]: '' }))
+    }
   }
 
   const handleEdit = (voucher) => {
@@ -70,16 +94,14 @@ const VoucherManager = () => {
     setIsEditMode(true)
     setIsShowForm(true)
     
-    // Format date for datetime-local input
+    // Format date for date input
     const formatDateForInput = (dateString) => {
       if (!dateString) return ''
       const date = new Date(dateString)
       const year = date.getFullYear()
       const month = String(date.getMonth() + 1).padStart(2, '0')
       const day = String(date.getDate()).padStart(2, '0')
-      const hours = String(date.getHours()).padStart(2, '0')
-      const minutes = String(date.getMinutes()).padStart(2, '0')
-      return `${year}-${month}-${day}T${hours}:${minutes}`
+      return `${year}-${month}-${day}`
     }
 
     setEditFormData({
@@ -108,65 +130,91 @@ const VoucherManager = () => {
       min_order_value: 0,
       status: 'active'
     })
+    setEditErrors({
+      code: '',
+      value: '',
+      start_date: '',
+      end_date: '',
+      remain: '',
+      max_discount_amount: '',
+      min_order_value: '',
+      status: ''
+    })
   }
 
   const handleUpdateSubmit = async (e) => {
     e.preventDefault()
-    if(editFormData.code === '' || editFormData.value === 0 || editFormData.start_date === '' || editFormData.end_date === ''){
-        return toast.error('Vui lòng nhập đầy đủ thông tin');
-    }
-    if(!validateVoucherCode(editFormData.code)){
-      return toast.error('Mã voucher phải có định dạng: 4 chữ cái và 4 chữ số (VD: ABCD1234)');
-    }
-    if(editFormData.value < 1 || editFormData.value > 100){
-      return toast.error('Giá trị giảm giá phải từ 1% đến 100%');
-    }
-    if(new Date(editFormData.start_date) >= new Date(editFormData.end_date)){
-      return toast.error('Ngày kết thúc phải sau ngày bắt đầu');
-    }
-    if(editFormData.remain < 0 || editFormData.remain > 100){
-      return toast.error('Số lượt còn lại phải từ 0 đến 100');
-    }
+    
+    // Reset errors
+    setEditErrors({
+      code: '',
+      value: '',
+      start_date: '',
+      end_date: '',
+      remain: '',
+      max_discount_amount: '',
+      min_order_value: '',
+      status: ''
+    })
+    
     try{
+      // Convert date to ISO string with time 00:00:00
+      const startDate = editFormData.start_date ? new Date(editFormData.start_date + 'T00:00:00').toISOString() : editFormData.start_date
+      const endDate = editFormData.end_date ? new Date(editFormData.end_date + 'T00:00:00').toISOString() : editFormData.end_date
+      
       const voucherData = {
         ...editFormData,
-        start_date: new Date(editFormData.start_date).toISOString(),
-        end_date: new Date(editFormData.end_date).toISOString(),
-        max_discount_amount: editFormData.max_discount_amount === '' ? null : Number(editFormData.max_discount_amount),
+        start_date: startDate,
+        end_date: endDate,
+        max_discount_amount: Number(editFormData.max_discount_amount),
         min_order_value: Number(editFormData.min_order_value) || 0,
       }
       await dispatch(updateVoucher({id: editingVoucher._id, ...voucherData})).unwrap()
       toast.success('Cập nhật voucher thành công')
       handleCancelEdit()
     } catch (error) {
-      const errorMessage = Array.isArray(error) ? error.join(', ') : (error || 'Cập nhật voucher không thành công')
-      toast.error(errorMessage)
+      console.log('Update error:', error)
+      const errorData = error?.payload || error
+      const errorMessage = errorData?.message || 'Cập nhật voucher không thành công'
+      const errorField = errorData?.field
+      
+      console.log('Error data:', errorData, 'Field:', errorField, 'Message:', errorMessage)
+      
+      // Hiển thị lỗi theo field
+      if (errorField) {
+        setEditErrors(prev => ({
+          ...prev,
+          [errorField]: errorMessage
+        }))
+      }
     }
   }
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-    if(formData.code === '' || formData.value === 0 || formData.start_date === '' || formData.end_date === ''){
-        return toast.error('Vui lòng nhập đầy đủ thông tin');
-    }
-    if(!validateVoucherCode(formData.code)){
-      return toast.error('Mã voucher phải có định dạng: 4 chữ cái và 4 chữ số (VD: ABCD1234)');
-    }
-    if(formData.value < 1 || formData.value > 100){
-      return toast.error('Giá trị giảm giá phải từ 1% đến 100%');
-    }
-    if(new Date(formData.start_date) >= new Date(formData.end_date)){
-      return toast.error('Ngày kết thúc phải sau ngày bắt đầu');
-    }
-    if(formData.remain < 0 || formData.remain > 100){
-      return toast.error('Số lượt còn lại phải từ 0 đến 100');
-    }
+    
+    // Reset errors
+    setErrors({
+      code: '',
+      value: '',
+      start_date: '',
+      end_date: '',
+      remain: '',
+      max_discount_amount: '',
+      min_order_value: '',
+      status: ''
+    })
+    
     try{
+      // Convert date to ISO string with time 00:00:00
+      const startDate = formData.start_date ? new Date(formData.start_date + 'T00:00:00').toISOString() : formData.start_date
+      const endDate = formData.end_date ? new Date(formData.end_date + 'T00:00:00').toISOString() : formData.end_date
+      
       const voucherData = {
         ...formData,
-        start_date: new Date(formData.start_date).toISOString(),
-        end_date: new Date(formData.end_date).toISOString(),
-        max_discount_amount: formData.max_discount_amount === '' ? null : Number(formData.max_discount_amount),
+        start_date: startDate,
+        end_date: endDate,
+        max_discount_amount: Number(formData.max_discount_amount),
         min_order_value: Number(formData.min_order_value) || 0,
       }
       await dispatch(addVoucher(voucherData)).unwrap()
@@ -181,10 +229,32 @@ const VoucherManager = () => {
         min_order_value: 0,
         status: 'active'
       })
+      setErrors({
+        code: '',
+        value: '',
+        start_date: '',
+        end_date: '',
+        remain: '',
+        max_discount_amount: '',
+        min_order_value: '',
+        status: ''
+      })
       setIsShowForm(false)
     } catch (error) {
-      const errorMessage = Array.isArray(error) ? error.join(', ') : (error || 'Thêm voucher không thành công')
-      toast.error(errorMessage)
+      console.log('Add error:', error)
+      const errorData = error?.payload || error
+      const errorMessage = errorData?.message || 'Thêm voucher không thành công'
+      const errorField = errorData?.field
+      
+      console.log('Error data:', errorData, 'Field:', errorField, 'Message:', errorMessage)
+      
+      // Hiển thị lỗi theo field
+      if (errorField) {
+        setErrors(prev => ({
+          ...prev,
+          [errorField]: errorMessage
+        }))
+      }
     }
   }
 
@@ -365,19 +435,18 @@ const VoucherManager = () => {
                         <form className={`w-full transition-all duration-500 rounded-lg overflow-hidden shadow-lg ${isShowForm ? 'max-h-1000' : 'max-h-0 lg:max-h-1000'}`} onSubmit={handleUpdateSubmit}>
                         <div className="p-4">
                             <div className="mb-4 w-full">
-                                <label className='text-sm text-gray-600 block mb-1'>Mã voucher (4 chữ cái + 4 chữ số)</label>
+                                <label className='text-sm text-gray-600 block mb-1'>Mã voucher</label>
                                 <input 
                                     name='code' 
                                     onChange={handleEditFormChange} 
                                     value={editFormData.code} 
-                                    className='border-gray-600 border w-full p-2 rounded-lg uppercase font-mono' 
+                                    className={`border-gray-600 border w-full p-2 rounded-lg font-mono ${editErrors.code ? 'border-red-500' : ''}`}
                                     type="text" 
-                                    pattern="[A-Z]{4}[0-9]{4}"
-                                    maxLength={8}
-                                    placeholder="ABCD1234"
-                                    required
+                                    placeholder="Nhập mã voucher"
                                 />
-                                <p className='text-xs text-gray-500 mt-1'>Ví dụ: ABCD1234, SUMM2024</p>
+                                {editErrors.code && (
+                                  <p className="text-red-500 text-sm mt-1">{editErrors.code}</p>
+                                )}
                             </div>
                             <div className="mb-4 w-full">
                                 <label className='text-sm text-gray-600 block mb-1'>Giá trị giảm giá (%)</label>
@@ -385,12 +454,13 @@ const VoucherManager = () => {
                                     name='value' 
                                     onChange={handleEditFormChange} 
                                     value={editFormData.value} 
-                                    className='border-gray-600 border w-full p-2 rounded-lg' 
-                                    type="number" 
-                                    min="1" 
-                                    max="100"
-                                    required
+                                    className={`border-gray-600 border w-full p-2 rounded-lg ${editErrors.value ? 'border-red-500' : ''}`}
+                                    type="text" 
+                                    placeholder="1-100"
                                 />
+                                {editErrors.value && (
+                                  <p className="text-red-500 text-sm mt-1">{editErrors.value}</p>
+                                )}
                             </div>
                             <div className="mb-4 w-full">
                                 <label className='text-sm text-gray-600 block mb-1'>Ngày bắt đầu</label>
@@ -398,10 +468,12 @@ const VoucherManager = () => {
                                     name='start_date' 
                                     onChange={handleEditFormChange} 
                                     value={editFormData.start_date} 
-                                    className='border-gray-600 border w-full p-2 rounded-lg' 
-                                    type="datetime-local" 
-                                    required
+                                    className={`border-gray-600 border w-full p-2 rounded-lg ${editErrors.start_date ? 'border-red-500' : ''}`}
+                                    type="date" 
                                 />
+                                {editErrors.start_date && (
+                                  <p className="text-red-500 text-sm mt-1">{editErrors.start_date}</p>
+                                )}
                             </div>
                             <div className="mb-4 w-full">
                                 <label className='text-sm text-gray-600 block mb-1'>Ngày kết thúc</label>
@@ -409,10 +481,12 @@ const VoucherManager = () => {
                                     name='end_date' 
                                     onChange={handleEditFormChange} 
                                     value={editFormData.end_date} 
-                                    className='border-gray-600 border w-full p-2 rounded-lg' 
-                                    type="datetime-local" 
-                                    required
+                                    className={`border-gray-600 border w-full p-2 rounded-lg ${editErrors.end_date ? 'border-red-500' : ''}`}
+                                    type="date" 
                                 />
+                                {editErrors.end_date && (
+                                  <p className="text-red-500 text-sm mt-1">{editErrors.end_date}</p>
+                                )}
                             </div>
                             <div className="mb-4 w-full">
                                 <label className='text-sm text-gray-600 block mb-1'>Số lượt còn lại (0-100)</label>
@@ -420,13 +494,13 @@ const VoucherManager = () => {
                                     name='remain' 
                                     onChange={handleEditFormChange} 
                                     value={editFormData.remain} 
-                                    className='border-gray-600 border w-full p-2 rounded-lg' 
-                                    type="number" 
-                                    min="0"
-                                    max="100"
+                                    className={`border-gray-600 border w-full p-2 rounded-lg ${editErrors.remain ? 'border-red-500' : ''}`}
+                                    type="text" 
                                     placeholder="1-100"
-                                    required
                                 />
+                                {editErrors.remain && (
+                                  <p className="text-red-500 text-sm mt-1">{editErrors.remain}</p>
+                                )}
                             </div>
                             <div className="mb-4 w-full">
                                 <label className='text-sm text-gray-600 block mb-1'>Số tiền tối đa được giảm (VNĐ)</label>
@@ -434,11 +508,13 @@ const VoucherManager = () => {
                                     name='max_discount_amount' 
                                     onChange={handleEditFormChange} 
                                     value={editFormData.max_discount_amount} 
-                                    className='border-gray-600 border w-full p-2 rounded-lg' 
-                                    type="number" 
-                                    min="0"
-                                    placeholder="Để trống nếu không giới hạn"
+                                    className={`border-gray-600 border w-full p-2 rounded-lg ${editErrors.max_discount_amount ? 'border-red-500' : ''}`}
+                                    type="text" 
+                                    placeholder="Nhập số tiền tối đa được giảm"
                                 />
+                                {editErrors.max_discount_amount && (
+                                  <p className="text-red-500 text-sm mt-1">{editErrors.max_discount_amount}</p>
+                                )}
                                 <p className='text-xs text-gray-500 mt-1'>Ví dụ: 50000 (tối đa giảm 50.000 VNĐ)</p>
                             </div>
                             <div className="mb-4 w-full">
@@ -447,12 +523,13 @@ const VoucherManager = () => {
                                     name='min_order_value' 
                                     onChange={handleEditFormChange} 
                                     value={editFormData.min_order_value} 
-                                    className='border-gray-600 border w-full p-2 rounded-lg' 
-                                    type="number" 
-                                    min="0"
+                                    className={`border-gray-600 border w-full p-2 rounded-lg ${editErrors.min_order_value ? 'border-red-500' : ''}`}
+                                    type="text" 
                                     placeholder="0"
-                                    required
                                 />
+                                {editErrors.min_order_value && (
+                                  <p className="text-red-500 text-sm mt-1">{editErrors.min_order_value}</p>
+                                )}
                                 <p className='text-xs text-gray-500 mt-1'>Đơn hàng phải có giá trị tối thiểu này để áp dụng voucher</p>
                             </div>
                             <div className="mb-4 w-full">
@@ -461,11 +538,15 @@ const VoucherManager = () => {
                                     name='status' 
                                     onChange={handleEditFormChange} 
                                     value={editFormData.status} 
-                                    className='border-gray-600 border w-full p-2 rounded-lg'
+                                    className={`border-gray-600 border w-full p-2 rounded-lg ${editErrors.status ? 'border-red-500' : ''}`}
                                 >
+                                    <option value="">-- Chọn trạng thái --</option>
                                     <option value="active">Active</option>
                                     <option value="inactive">Inactive</option>
                                 </select>
+                                {editErrors.status && (
+                                  <p className="text-red-500 text-sm mt-1">{editErrors.status}</p>
+                                )}
                             </div>
                             <div className="mb-4 w-full flex gap-2">
                                 <button type='submit' className='bg-blue-600 hover:bg-blue-500 transition-all duration-300 rounded-lg flex-1 py-2 text-white cursor-pointer'>Cập nhật</button>
@@ -477,18 +558,18 @@ const VoucherManager = () => {
                         <form className={`w-full transition-all duration-500 rounded-lg overflow-hidden shadow-lg ${isShowForm ? 'max-h-1000' : 'max-h-0 lg:max-h-1000'}`} onSubmit={handleFormSubmit}>
                     <div className="p-4">
                         <div className="mb-4 w-full">
-                            <label className='text-sm text-gray-600 block mb-1'>Mã voucher (4 chữ cái + 4 chữ số)</label>
+                            <label className='text-sm text-gray-600 block mb-1'>Mã voucher</label>
                             <input 
                                 name='code' 
                                 onChange={handleFormChange} 
                                 value={formData.code} 
-                                className='border-gray-600 border w-full p-2 rounded-lg uppercase font-mono' 
+                                className={`border-gray-600 border w-full p-2 rounded-lg font-mono ${errors.code ? 'border-red-500' : ''}`}
                                 type="text" 
-                                pattern="[A-Z]{4}[0-9]{4}"
-                                maxLength={8}
-                                placeholder="ABCD1234"
-                                required
+                                placeholder="Nhập mã voucher"
                             />
+                            {errors.code && (
+                              <p className="text-red-500 text-sm mt-1">{errors.code}</p>
+                            )}
                             <p className='text-xs text-gray-500 mt-1'>Ví dụ: ABCD1234, SUMM2024</p>
                         </div>
                         <div className="mb-4 w-full">
@@ -497,13 +578,13 @@ const VoucherManager = () => {
                                 name='value' 
                                 onChange={handleFormChange} 
                                 value={formData.value} 
-                                className='border-gray-600 border w-full p-2 rounded-lg' 
-                                type="number" 
-                                min="1" 
-                                max="100"
+                                className={`border-gray-600 border w-full p-2 rounded-lg ${errors.value ? 'border-red-500' : ''}`}
+                                type="text" 
                                 placeholder="1-100"
-                                required
                             />
+                            {errors.value && (
+                              <p className="text-red-500 text-sm mt-1">{errors.value}</p>
+                            )}
                         </div>
                         <div className="mb-4 w-full">
                             <label className='text-sm text-gray-600 block mb-1'>Ngày bắt đầu</label>
@@ -511,10 +592,12 @@ const VoucherManager = () => {
                                 name='start_date' 
                                 onChange={handleFormChange} 
                                 value={formData.start_date} 
-                                className='border-gray-600 border w-full p-2 rounded-lg' 
-                                type="datetime-local" 
-                                required
+                                className={`border-gray-600 border w-full p-2 rounded-lg ${errors.start_date ? 'border-red-500' : ''}`}
+                                type="date" 
                             />
+                            {errors.start_date && (
+                              <p className="text-red-500 text-sm mt-1">{errors.start_date}</p>
+                            )}
                         </div>
                         <div className="mb-4 w-full">
                             <label className='text-sm text-gray-600 block mb-1'>Ngày kết thúc</label>
@@ -522,10 +605,12 @@ const VoucherManager = () => {
                                 name='end_date' 
                                 onChange={handleFormChange} 
                                 value={formData.end_date} 
-                                className='border-gray-600 border w-full p-2 rounded-lg' 
-                                type="datetime-local" 
-                                required
+                                className={`border-gray-600 border w-full p-2 rounded-lg ${errors.end_date ? 'border-red-500' : ''}`}
+                                type="date" 
                             />
+                            {errors.end_date && (
+                              <p className="text-red-500 text-sm mt-1">{errors.end_date}</p>
+                            )}
                         </div>
                         <div className="mb-4 w-full">
                             <label className='text-sm text-gray-600 block mb-1'>Số lượt còn lại (0-100)</label>
@@ -533,13 +618,13 @@ const VoucherManager = () => {
                                 name='remain' 
                                 onChange={handleFormChange} 
                                 value={formData.remain} 
-                                className='border-gray-600 border w-full p-2 rounded-lg' 
-                                type="number" 
-                                min="0"
-                                max="100"
+                                className={`border-gray-600 border w-full p-2 rounded-lg ${errors.remain ? 'border-red-500' : ''}`}
+                                type="text" 
                                 placeholder="1-100"
-                                required
                             />
+                            {errors.remain && (
+                              <p className="text-red-500 text-sm mt-1">{errors.remain}</p>
+                            )}
                         </div>
                         <div className="mb-4 w-full">
                             <label className='text-sm text-gray-600 block mb-1'>Số tiền tối đa được giảm (VNĐ)</label>
@@ -547,12 +632,13 @@ const VoucherManager = () => {
                                 name='max_discount_amount' 
                                 onChange={handleFormChange} 
                                 value={formData.max_discount_amount} 
-                                className='border-gray-600 border w-full p-2 rounded-lg' 
-                                type="number" 
-                                min="0"
-                                placeholder="Để trống = không giới hạn"
+                                className={`border-gray-600 border w-full p-2 rounded-lg ${errors.max_discount_amount ? 'border-red-500' : ''}`}
+                                type="text" 
+                                placeholder="Nhập số tiền tối đa được giảm"
                             />
-                            <p className='text-xs text-gray-500 mt-1'>Để trống nếu không giới hạn số tiền giảm tối đa</p>
+                            {errors.max_discount_amount && (
+                              <p className="text-red-500 text-sm mt-1">{errors.max_discount_amount}</p>
+                            )}
                         </div>
                         <div className="mb-4 w-full">
                             <label className='text-sm text-gray-600 block mb-1'>Giá trị đơn hàng tối thiểu (VNĐ)</label>
@@ -560,12 +646,13 @@ const VoucherManager = () => {
                                 name='min_order_value' 
                                 onChange={handleFormChange} 
                                 value={formData.min_order_value} 
-                                className='border-gray-600 border w-full p-2 rounded-lg' 
-                                type="number" 
-                                min="0"
+                                className={`border-gray-600 border w-full p-2 rounded-lg ${errors.min_order_value ? 'border-red-500' : ''}`}
+                                type="text" 
                                 placeholder="0"
-                                required
                             />
+                            {errors.min_order_value && (
+                              <p className="text-red-500 text-sm mt-1">{errors.min_order_value}</p>
+                            )}
                         </div>
                         <div className="mb-4 w-full">
                             <label className='text-sm text-gray-600 block mb-1'>Trạng thái</label>
@@ -573,11 +660,15 @@ const VoucherManager = () => {
                                 name='status' 
                                 onChange={handleFormChange} 
                                 value={formData.status} 
-                                className='border-gray-600 border w-full p-2 rounded-lg'
+                                className={`border-gray-600 border w-full p-2 rounded-lg ${errors.status ? 'border-red-500' : ''}`}
                             >
+                                <option value="">-- Chọn trạng thái --</option>
                                 <option value="active">Active</option>
                                 <option value="inactive">Inactive</option>
                             </select>
+                            {errors.status && (
+                              <p className="text-red-500 text-sm mt-1">{errors.status}</p>
+                            )}
                         </div>
                         <div className="mb-4 w-full">
                             <button className='bg-blue-600 hover:bg-blue-500 transition-all duration-300 rounded-lg w-full py-2 text-white cursor-pointer'>Thêm</button>

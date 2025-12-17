@@ -19,7 +19,7 @@ export const addVoucher = createAsyncThunk('adminVoucher/addVoucher', async(vouc
         })
         return response.data
     } catch (error) {
-        return rejectWithValue(error.response?.data?.message || error.response?.data?.errors || 'Lỗi không xác định')
+        return rejectWithValue(error.response?.data || { message: 'Lỗi không xác định' })
     }
 })
 
@@ -32,7 +32,7 @@ export const updateVoucher = createAsyncThunk('adminVoucher/updateVoucher', asyn
         })
         return response.data
     } catch (error) {
-        return rejectWithValue(error.response?.data?.message || error.response?.data?.errors || 'Lỗi không xác định')
+        return rejectWithValue(error.response?.data || { message: 'Lỗi không xác định' })
     }
 })
 
