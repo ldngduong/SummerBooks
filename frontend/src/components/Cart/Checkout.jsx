@@ -204,7 +204,6 @@ const Checkout = () => {
                         }} 
                         value={fullName} 
                         className={`w-full p-2 border rounded ${errors.name ? 'border-red-500' : ''}`}
-                        required
                     />
                     {errors.name && (
                       <p className="text-red-500 text-sm mt-1">{errors.name}</p>
@@ -220,7 +219,6 @@ const Checkout = () => {
                           setPhone(e.target.value)
                           if (errors.phone) setErrors(prev => ({ ...prev, phone: '' }))
                         }} 
-                        required
                     />
                     {errors.phone && (
                       <p className="text-red-500 text-sm mt-1">{errors.phone}</p>
@@ -238,7 +236,6 @@ const Checkout = () => {
                         className={`w-full p-2 border rounded ${errors.address ? 'border-red-500' : ''}`}
                         rows="3"
                         placeholder="Nhập địa chỉ đầy đủ (số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố)"
-                        required
                     />
                     {errors.address && (
                       <p className="text-red-500 text-sm mt-1">{errors.address}</p>
