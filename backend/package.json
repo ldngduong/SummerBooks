@@ -10,7 +10,8 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test:review": "jest tests/reviewTestcase.test.js --no-coverage",
-    "test:shop": "jest tests/shopManagerTestcase.test.js --no-coverage"
+    "test:shop": "jest tests/shopManagerTestcase.test.js --no-coverage",
+    "test:register": "jest tests/userRoutes.register.test.js --no-coverage --verbose"
   },
   "keywords": [],
   "author": "",
