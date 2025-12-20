@@ -68,10 +68,40 @@ router.post('/login', async (req, res) => {
     const {email, password} = req.body
 
     try{
-        let user = await User.findOne({email})
-        if (!user) return res.status(400).json({message: 'Thông tin không hợp lệ.'})
+        // Validation: Email bắt buộc
+        if(!email || email.trim() === ''){
+            return res.status(400).json({message: 'Vui lòng nhập đầy đủ thông tin.'})
+        }
+
+        // Validation: Password bắt buộc
+        if(!password || password.trim() === ''){
+            return res.status(400).json({message: 'Vui lòng nhập đầy đủ thông tin.'})
+        }
+
+        // Validation: Email phải đúng định dạng
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+        if(!emailPattern.test(email.trim())){
+            return res.status(400).json({message: 'Thông tin không hợp lệ.'})
+        }
+
+        // Validation: Password phải có tối thiểu 8 ký tự, 1 ký tự đặc biệt và 1 ký tự in hoa
+        const passwordPattern = /^(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>_\-]).{8,}$/
+        if(!passwordPattern.test(password)){
+            return res.status(400).json({message: 'Thông tin không hợp lệ.'})
+        }
+
+        // Kiểm tra email có tồn tại trong hệ thống
+        let user = await User.findOne({email: email.trim()})
+        if (!user) {
+            return res.status(400).json({message: 'Thông tin không hợp lệ.'})
+        }
+
+        // Kiểm tra mật khẩu có khớp với mật khẩu đã đăng ký
         const isMatch = await user.matchPassword(password)
-        if(!isMatch) return res.status(400).json({message: 'Thông tin không hợp lệ'})
+        if(!isMatch) {
+            return res.status(400).json({message: 'Thông tin không hợp lệ.'})
+        }
+
             const payload = {user: {id: user._id, role: user.role}}
 
         jwt.sign(payload, process.env.JWT_SECRET, {expiresIn: '40h'}, (err, token) => {

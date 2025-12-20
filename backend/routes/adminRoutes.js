@@ -30,47 +30,82 @@ const router = express.Router()
     router.post('/users', protect, admin, async (req, res) => {
         const {email, name, password, role} = req.body
         try {
-            let user = await User.findOne({email});
-            if(user){
-                return res.status(400).json({message: "Người dùng đã tồn tại"})
+            // Validation: Tên người dùng bắt buộc
+            if(!name || name.trim() === ''){
+                return res.status(400).json({message: 'Tên người dùng không được để trống.'})
             }
-            user = new User({email, name, password, role})
+
+            // Validation: Tên người dùng tối thiểu 2 ký tự, không chứa ký tự đặc biệt hoặc số
+            const namePattern = /^[\p{L}\s]{2,}$/u
+            if(!namePattern.test(name.trim())){
+                return res.status(400).json({message: 'Tên người dùng không hợp lệ.'})
+            }
+
+            // Validation: Email bắt buộc
+            if(!email || email.trim() === ''){
+                return res.status(400).json({message: 'Email không được để trống.'})
+            }
+
+            // Validation: Email phải đúng định dạng
+            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+            if(!emailPattern.test(email.trim())){
+                return res.status(400).json({message: 'Email không hợp lệ.'})
+            }
+
+            // Validation: Email phải duy nhất trong hệ thống
+            let user = await User.findOne({email: email.trim()});
+            if(user){
+                return res.status(400).json({message: "Email đã tồn tại."})
+            }
+
+            // Validation: Mật khẩu bắt buộc
+            if(!password || password.trim() === ''){
+                return res.status(400).json({message: 'Mật khẩu không được để trống.'})
+            }
+
+            // Validation: Mật khẩu phải có tối thiểu 8 ký tự, 1 ký tự đặc biệt và 1 ký tự in hoa
+            const passwordPattern = /^(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>_\-]).{8,}$/
+            if(!passwordPattern.test(password)){
+                return res.status(400).json({message: 'Mật khẩu không hợp lệ. Tối thiểu 8 ký tự trong đó tối thiểu 1 ký tự đặc biệt và 1 ký tự in hoa.'})
+            }
+
+            // Validation: Vai trò bắt buộc
+            if(!role || role.trim() === ''){
+                return res.status(400).json({message: 'Vai trò không được để trống.'})
+            }
+
+            user = new User({email: email.trim(), name: name.trim(), password, role})
             await user.save()
             return res.status(201).json(user)
         } catch (error) {
+            console.log(error)
+            if(error.name === 'ValidationError'){
+                return res.status(400).json({message: 'Thông tin không hợp lệ.'})
+            }
             return res.status(500).json({message: "Lỗi server"})
         }
     })
 
 
-    // put /api/admin/users/:id - edit user - admin only
+    // put /api/admin/users/:id - edit user - admin only (chỉ được sửa vai trò)
     router.put('/users/:id', protect, admin, async (req, res) => {
-        const { email, password, role } = req.body;
+        const { role } = req.body;
         try {
             let user = await User.findById(req.params.id);
             if (!user) {
                 return res.status(404).json({ message: "Không tìm thấy người dùng" });
             }
 
-            if (email) {
-                let checkUser = await User.findOne({email})
-                if(checkUser){
-                    return res.status(400).json({message: "Người dùng đã tồn tại"})
-                }
-                user.email = email;
+            // Chỉ cho phép sửa vai trò
+            if (!role || role.trim() === '') {
+                return res.status(400).json({ message: "Vai trò không được để trống." });
             }
-            if (password) {
-                if (password.length < 6) {
-                    return res.status(400).json({ message: "Mật khẩu phải có ít nhất 6 ký tự" });
-                }
-                user.password = password;
-            }
-            if (role) {
-                user.role = role;
-            }
+
+            user.role = role;
             await user.save();
             return res.status(200).json({ message: "Cập nhật thành công", user });
         } catch (error) {
+            console.log(error)
             return res.status(500).json({ message: "Lỗi server" });
         }
     });
