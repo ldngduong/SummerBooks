@@ -21,32 +21,96 @@ const UserManager = () => {
     email: '',
     password: '',
     name: '',
-    role: 'Khách hàng'
+    role: ''
   })
   const handleFormChange = (e) => {
     setFormData({...formData, [e.target.name]:e.target.value})
   }
+
+  const validateName = (name) => {
+    if(!name || name.trim() === ''){
+      return 'Tên người dùng không được để trống.'
+    }
+    const namePattern = /^[\p{L}\s]{2,}$/u
+    if(!namePattern.test(name.trim())){
+      return 'Tên người dùng không hợp lệ.'
+    }
+    return ''
+  }
+
+  const validateEmail = (email) => {
+    if(!email || email.trim() === ''){
+      return 'Email không được để trống.'
+    }
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if(!emailPattern.test(email.trim())){
+      return 'Email không hợp lệ.'
+    }
+    return ''
+  }
+
+  const validatePassword = (password) => {
+    if(!password || password.trim() === ''){
+      return 'Mật khẩu không được để trống.'
+    }
+    const passwordPattern = /^(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>_\-]).{8,}$/
+    if(!passwordPattern.test(password)){
+      return 'Mật khẩu không hợp lệ. Tối thiểu 8 ký tự trong đó tối thiểu 1 ký tự đặc biệt và 1 ký tự in hoa.'
+    }
+    return ''
+  }
+
+  const validateRole = (role) => {
+    if(!role || role.trim() === ''){
+      return 'Vai trò không được để trống.'
+    }
+    return ''
+  }
+
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-    if(formData.email === '' || formData.password === '' || formData.name === ''){
-        return toast.error('Vui lòng nhập đầy đủ thông tin');
+    
+    // Validate tên
+    const nameErr = validateName(formData.name)
+    if(nameErr){
+      return toast.error(nameErr)
     }
-    if(formData.password.length < 6){
-      return toast.error('Mật khẩu phải có tối thiểu 6 kí tự');
-  } 
+
+    // Validate email
+    const emailErr = validateEmail(formData.email)
+    if(emailErr){
+      return toast.error(emailErr)
+    }
+
+    // Validate password
+    const passwordErr = validatePassword(formData.password)
+    if(passwordErr){
+      return toast.error(passwordErr)
+    }
+
+    // Validate role
+    const roleErr = validateRole(formData.role)
+    if(roleErr){
+      return toast.error(roleErr)
+    }
+
     try{
-      await dispatch(addUser(formData)).unwrap()
+      await dispatch(addUser({
+        email: formData.email.trim(),
+        name: formData.name.trim(),
+        password: formData.password,
+        role: formData.role
+      })).unwrap()
       toast.success('Thêm người dùng thành công')
       setFormData({
         email: '',
         password: '',
         name: '',
-        role: 'Khách hàng'
+        role: ''
       })
     } catch (error) {
-            toast.error(error.message|| 'Thêm người dùng không thành công. Vui lòng kiểm tra lại thông tin');
+      toast.error(error.message || 'Thêm người dùng không thành công. Vui lòng kiểm tra lại thông tin');
     }
-    
   }
   const handleDelete = async (id) => {
     const isConfirmed = window.confirm("Bạn có chắc chắn muốn xóa người dùng này?");
@@ -55,8 +119,29 @@ const UserManager = () => {
           toast.success('Xóa người dùng thành công.')
         }
   }
+  const [editingRoles, setEditingRoles] = useState({})
+
   const handleRoleChange = (id, e) => {
-    dispatch(updateUser({id, role: e.target.value}))
+    const selectedRole = e.target.value
+    if(selectedRole && selectedRole !== ''){
+      dispatch(updateUser({id, role: selectedRole}))
+      // Reset về undefined để hiển thị giá trị mới từ server
+      const newEditingRoles = {...editingRoles}
+      delete newEditingRoles[id]
+      setEditingRoles(newEditingRoles)
+    }
+  }
+
+  const handleRoleFocus = (id) => {
+    // Khi click vào dropdown, set giá trị trống để hiển thị danh sách
+    setEditingRoles({...editingRoles, [id]: ''})
+  }
+
+  const handleRoleBlur = (id) => {
+    // Khi blur mà chưa chọn, reset về giá trị ban đầu
+    const newEditingRoles = {...editingRoles}
+    delete newEditingRoles[id]
+    setEditingRoles(newEditingRoles)
   }
   if(loading){
     return <Loading />
@@ -83,11 +168,19 @@ const UserManager = () => {
                                     <th className='px-4 py-3'>{user._id.substring(0,3)}...{user._id.substring(user._id.length-4)}</th>
                                     <th className='px-4 py-3'>{user.email}</th>
                                     <th className=''>
-                                        <select value={user.role} onChange={(e) => {handleRoleChange(user._id, e)}} className='px-2 py-1 rounded-md border border-gray-500' name="role" id="">
-                                            <option value="Quản trị viên">Quản trị viên</option>
-                                            <option value="Nhân viên bán hàng">Nhân viên bán hàng</option>
-                                            <option value="Nhân viên nhập liệu">Nhân viên nhập liệu</option>
+                                        <select 
+                                            value={editingRoles[user._id] !== undefined ? editingRoles[user._id] : user.role} 
+                                            onChange={(e) => {handleRoleChange(user._id, e)}} 
+                                            onFocus={() => handleRoleFocus(user._id)}
+                                            onBlur={() => handleRoleBlur(user._id)}
+                                            className='px-2 py-1 rounded-md border border-gray-500' 
+                                            name="role" 
+                                        >
+                                            <option value="" disabled hidden>Chọn vai trò</option>
                                             <option value="Khách hàng">Khách hàng</option>
+                                            <option value="Nhân viên nhập liệu">Nhân viên nhập liệu</option>
+                                            <option value="Nhân viên bán hàng">Nhân viên bán hàng</option>
+                                            <option value="Quản trị viên">Quản trị viên</option>
                                         </select>
                                     </th>
                                     <th onClick={() => handleDelete(user._id)} className='hover:text-red-600 transition-all duration-200 text-red-400 px-4 py-3 cursor-pointer'>Xóa</th>
@@ -107,24 +200,25 @@ const UserManager = () => {
                     <form className={`w-full transition-all duration-500 rounded-lg overflow-hidden shadow-lg ${isShowForm ? 'max-h-1000' : 'max-h-0 lg:max-h-1000'}`} onSubmit={handleFormSubmit}>
                     <div className="p-4">
                         <div className="mb-4 w-full">
-                            <label className='text-sm text-gray-600 block mb-1'>Tên</label>
-                            <input name='name' onChange={handleFormChange} value={formData.name} className='border-gray-600 border w-full p-2 rounded-lg' type="name" />
+                            <label className='text-sm text-gray-600 block mb-1'>Tên <span className='text-red-500'>*</span></label>
+                            <input name='name' onChange={handleFormChange} value={formData.name} className='border-gray-600 border w-full p-2 rounded-lg' type="text" placeholder='Tên người dùng' />
                         </div>
                         <div className="mb-4 w-full">
-                            <label className='text-sm text-gray-600 block mb-1'>Email</label>
-                            <input name='email' onChange={handleFormChange} value={formData.email} className='border-gray-600 border w-full p-2 rounded-lg' type="email" />
+                            <label className='text-sm text-gray-600 block mb-1'>Email <span className='text-red-500'>*</span></label>
+                            <input name='email' onChange={handleFormChange} value={formData.email} className='border-gray-600 border w-full p-2 rounded-lg' type="email" placeholder='email@example.com' />
                         </div>
                         <div className="mb-4 w-full">
-                            <label className='text-sm text-gray-600 block mb-1'>Mật khẩu</label>
-                            <input name='password' onChange={handleFormChange} value={formData.password} className='border-gray-600 border w-full p-2 rounded-lg' type="password" />
+                            <label className='text-sm text-gray-600 block mb-1'>Mật khẩu <span className='text-red-500'>*</span></label>
+                            <input name='password' onChange={handleFormChange} value={formData.password} className='border-gray-600 border w-full p-2 rounded-lg' type="password" placeholder='Mật khẩu' />
                         </div>
                         <div className="mb-4 w-full">
-                            <label className='text-sm text-gray-600 block mb-1'>Vai trò</label>
+                            <label className='text-sm text-gray-600 block mb-1'>Vai trò <span className='text-red-500'>*</span></label>
                             <select name='role' onChange={handleFormChange} value={formData.role} className='border-gray-600 border w-full p-2 rounded-lg'>
+                                <option value="" disabled hidden>Chọn vai trò</option>
+                                <option value="Khách hàng">Khách hàng</option>
                                 <option value="Nhân viên nhập liệu">Nhân viên nhập liệu</option>
                                 <option value="Nhân viên bán hàng">Nhân viên bán hàng</option>
                                 <option value="Quản trị viên">Quản trị viên</option>
-                                <option value="Khách hàng">Khách hàng</option>
                             </select>
                         </div>
                         <div className="mb-4 w-full">

@@ -12,13 +12,56 @@ const Login = () => {
   const [password, setPassword] = useState('')
   const dispatch = useDispatch();
   const navigate = useNavigate()
+
+  const validateEmail = (email) => {
+    if(!email || email.trim() === ''){
+      return 'Vui lòng nhập đầy đủ thông tin.'
+    }
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if(!emailPattern.test(email.trim())){
+      return 'Thông tin không hợp lệ.'
+    }
+    return ''
+  }
+
+  const validatePassword = (password) => {
+    if(!password || password.trim() === ''){
+      return 'Vui lòng nhập đầy đủ thông tin.'
+    }
+    // Sử dụng cùng pattern như backend
+    const passwordPattern = /^(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>_\-]).{8,}$/
+    if(!passwordPattern.test(password)){
+      return 'Thông tin không hợp lệ.'
+    }
+    return ''
+  }
+
+  const handleEmailChange = (e) => {
+    setEmail(e.target.value)
+  }
+
+  const handlePasswordChange = (e) => {
+    setPassword(e.target.value)
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if(email === '' || password === ''){
-            return toast.error('Vui lòng nhập đầy đủ thông tin');
-        }
+    
+    // Validate email
+    const emailErr = validateEmail(email)
+    
+    // Validate password
+    const passwordErr = validatePassword(password)
+    
+    // Nếu có lỗi validation, hiển thị toast và không submit
+    if(emailErr || passwordErr){
+      const errorMessage = emailErr || passwordErr
+      toast.error(errorMessage)
+      return
+    }
+
     try {
-        await dispatch(loginUser({ email, password })).unwrap();
+        await dispatch(loginUser({ email: email.trim(), password })).unwrap();
         toast.success('Đăng nhập thành công');
     } catch (error) {
         toast.error(error|| 'Đăng nhập không thành công. Vui lòng kiểm tra lại thông tin');
@@ -43,21 +86,21 @@ const Login = () => {
             </div>
             <h2 className='text-2xl font-bold text-center mb-6'>Đăng nhập</h2>
             <div className="mb-4">
-                <label className='block text-sm font-semibold mb-2'>Email</label>
+                <label className='block text-sm font-semibold mb-2'>Email <span className='text-red-500'>*</span></label>
                 <input 
                     type="email" 
                     value={email} 
-                    onChange={(e) => {setEmail(e.target.value)}}
+                    onChange={handleEmailChange}
                     className='w-full p-2 border rounded'
                     placeholder='username@email'
                 />
             </div>
             <div className="mb-4">
-                <label className='block text-sm font-semibold mb-2'>Mật khẩu</label>
+                <label className='block text-sm font-semibold mb-2'>Mật khẩu <span className='text-red-500'>*</span></label>
                 <input 
                     type="password" 
                     value={password} 
-                    onChange={(e) => {setPassword(e.target.value)}}
+                    onChange={handlePasswordChange}
                     className='w-full p-2 border rounded'
                     placeholder='Mật khẩu'
                 />
