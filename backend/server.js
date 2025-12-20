@@ -21,7 +21,10 @@ dotenv.config();
 
 const PORT = process.env.PORT || 3000;
 
-connectDB();
+// Only connect to DB if not in test environment
+if (process.env.NODE_ENV !== 'test') {
+    connectDB();
+}
 
 app.get('/', (req, res) => {
     res.send('the shop')
@@ -39,6 +42,11 @@ app.use('/api/shop-manager', shopManagerRouter);
 app.use('/api/vouchers', voucherRoutes);
 app.use('/api/user-vouchers', userVoucherRoutes);
 
-app.listen(PORT, () => {
-    console.log('Server is running on ', PORT)
-})
+// Only start server if not in test environment
+if (process.env.NODE_ENV !== 'test') {
+    app.listen(PORT, () => {
+        console.log('Server is running on ', PORT)
+    })
+}
+
+module.exports = app

@@ -1,45 +1,161 @@
 # Hướng dẫn chạy test
 
-## Cài đặt dependencies
+## Test chức năng Đánh giá đơn hàng (Review Routes)
 
+### Chạy tất cả test
 ```bash
-npm install
+npm test tests/reviewRoutes.test.js
+# hoặc
+npm run test:review
 ```
 
-## Chạy test
+### Chạy riêng từng phần
 
+#### 1. Bảng Testcase (8 test cases chính)
 ```bash
-# Chạy tất cả test
+npm run test:review:testcase
+# hoặc
+npm test -- --testNamePattern="Bảng Testcase"
+```
+
+#### 2. Phân vùng tương đương - Biến Điểm hài lòng
+```bash
+npm run test:review:rating-eq
+# hoặc
+npm test tests/reviewRoutes.test.js -- --testNamePattern="Phân vùng tương đương - Biến Điểm hài lòng"
+```
+
+#### 3. Phân tích giá trị biên - Biến Điểm hài lòng
+```bash
+npm run test:review:rating-boundary
+# hoặc
+npm test tests/reviewRoutes.test.js -- --testNamePattern="Phân tích giá trị biên - Biến Điểm hài lòng"
+```
+
+#### 4. Phân vùng tương đương - Biến Nhận xét
+```bash
+npm run test:review:comment-eq
+# hoặc
+npm test tests/reviewRoutes.test.js -- --testNamePattern="Phân vùng tương đương - Biến Nhận xét"
+```
+
+#### 5. Phân tích giá trị biên - Biến Nhận xét
+```bash
+npm run test:review:comment-boundary
+# hoặc
+npm test tests/reviewRoutes.test.js -- --testNamePattern="Phân tích giá trị biên - Biến Nhận xét"
+```
+
+#### 6. Phân vùng tương đương - Biến File ảnh
+```bash
+npm run test:review:image-eq
+# hoặc
+npm test tests/reviewRoutes.test.js -- --testNamePattern="Phân vùng tương đương - Biến File ảnh"
+```
+
+#### 7. Phân tích giá trị biên - Biến File ảnh
+```bash
+npm run test:review:image-boundary
+# hoặc
+npm test tests/reviewRoutes.test.js -- --testNamePattern="Phân tích giá trị biên - Biến File ảnh"
+```
+
+#### 8. Test các định dạng ảnh hợp lệ
+```bash
+npm run test:review:formats
+# hoặc
+npm test tests/reviewRoutes.test.js -- --testNamePattern="Test các định dạng ảnh hợp lệ"
+```
+
+### Chạy một test case cụ thể
+```bash
+# Ví dụ: Chạy test case 1 trong bảng testcase
+npm test tests/reviewRoutes.test.js -- --testNamePattern="TT 1"
+
+# Ví dụ: Chạy test case 8 (thành công)
+npm test tests/reviewRoutes.test.js -- --testNamePattern="TT 8"
+```
+
+---
+
+## Test chức năng Sửa thông tin cửa hàng (Shop Manager Routes)
+
+### Chạy tất cả test
+```bash
+npm test tests/shopManagerRoutes.test.js
+# hoặc
+npm run test:shop
+```
+
+### Chạy bảng testcase
+```bash
+npm run test:shop:testcase
+# hoặc
+npm test tests/shopManagerRoutes.test.js -- --testNamePattern="Bảng testcase"
+```
+
+### Chạy một test case cụ thể
+```bash
+# Ví dụ: Chạy test case 1
+npm test tests/shopManagerRoutes.test.js -- --testNamePattern="Test Case 1"
+```
+
+---
+
+## Lệnh chung
+
+### Chạy tất cả test trong thư mục tests
+```bash
 npm test
+```
 
-# Chạy test với watch mode
+### Chạy test với watch mode (tự động chạy lại khi có thay đổi)
+```bash
 npm run test:watch
+```
 
-# Chạy test với coverage report
+### Chạy test với coverage report
+```bash
 npm run test:coverage
 ```
 
-## Cấu trúc test
+### Chạy test với verbose output
+```bash
+npm test -- --verbose
+```
 
-File `reviewRoutes.test.js` chứa các test case cho chức năng đánh giá đơn hàng theo phương pháp kiểm thử hộp đen:
+### Chạy test và chỉ hiển thị kết quả (không hiển thị console.log)
+```bash
+npm test -- --silent
+```
 
-### 7 test cases từ bảng quyết định:
-1. TC1: Điểm hài lòng để trống - Thất bại
-2. TC2: Điểm hài lòng = 1.5 (không phải số tự nhiên) - Thất bại
-3. TC3: Điểm hài lòng = 20 (ngoài khoảng [1,10]) - Thất bại
-4. TC4: Nhận xét > 500 ký tự - Thất bại
-5. TC5: File ảnh không đúng định dạng (.htm) - Thất bại
-6. TC6: File ảnh > 25MB - Thất bại
-7. TC7: Tất cả dữ liệu hợp lệ - Thành công
+---
 
-### Test bổ sung:
-- Kiểm thử giá trị biên cho điểm hài lòng (1, 10, 0, 11)
-- Kiểm thử độ dài nhận xét (500, 501 ký tự)
-- Kiểm thử các định dạng file ảnh hợp lệ (jpg, png, jpeg, svg)
-- Kiểm thử trường không bắt buộc (file ảnh, nhận xét)
+## Ví dụ sử dụng
 
-## Lưu ý
+### Để lấy đầu ra thực tế cho bảng testcase:
+```bash
+# Chạy 8 test case trong bảng testcase
+npm run test:review:testcase
 
-- Test sử dụng mocks cho database, authentication middleware, và cloudinary
-- Validation URL/Email/SĐT trong nhận xét chưa được implement trong code, các test case tương ứng sẽ pass nhưng cần được cập nhật khi validation được thêm vào
+# Kết quả sẽ hiển thị trong console:
+# Test Case 1 - Đầu ra thực tế:
+# Status: 400
+# Message: Điểm hài lòng không được để trống
+```
+
+### Để test một chức năng cụ thể:
+```bash
+# Test validation điểm hài lòng
+npm run test:review:rating-eq
+npm run test:review:rating-boundary
+
+# Test validation nhận xét
+npm run test:review:comment-eq
+npm run test:review:comment-boundary
+
+# Test validation file ảnh
+npm run test:review:image-eq
+npm run test:review:image-boundary
+```
 

@@ -1,16 +1,24 @@
-// Jest setup file
-// This file runs before each test file
+const mongoose = require('mongoose')
+require('dotenv').config()
 
-// Suppress console.log in tests (optional)
-// global.console = {
-//   ...console,
-//   log: jest.fn(),
-//   debug: jest.fn(),
-//   info: jest.fn(),
-//   warn: jest.fn(),
-//   error: jest.fn(),
-// }
+// Setup before all tests
+beforeAll(async () => {
+  // Use test database if MONGO_URI_TEST is set, otherwise use regular MONGO_URI
+  const mongoUri = process.env.MONGO_URI_TEST || process.env.MONGO_URI || 'mongodb://localhost:27017/summerbooks-test'
+  await mongoose.connect(mongoUri)
+})
 
-// Set test timeout
-jest.setTimeout(10000)
+// Cleanup after each test
+afterEach(async () => {
+  const collections = mongoose.connection.collections
+  for (const key in collections) {
+    await collections[key].deleteMany({})
+  }
+})
+
+// Cleanup after all tests
+afterAll(async () => {
+  await mongoose.connection.dropDatabase()
+  await mongoose.connection.close()
+})
 
