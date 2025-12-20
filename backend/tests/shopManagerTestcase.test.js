@@ -302,9 +302,8 @@ describe('Bảng Testcase - Sửa thông tin cửa hàng', () => {
     console.log('Hero Image:', response.body.heroImage || 'N/A')
     console.log('')
     
-    // Note: heroImage validation không có trong code mới, chỉ validate URL contact
-    // Test này có thể pass (200) vì không có validation cho heroImage
-    expect([200, 400]).toContain(response.status)
+    expect(response.status).toBe(400)
+    expect(response.body.message).toContain('định dạng')
   })
 })
 
