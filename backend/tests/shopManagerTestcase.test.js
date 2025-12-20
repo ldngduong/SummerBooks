@@ -102,8 +102,8 @@ describe('Bảng Testcase - Sửa thông tin cửa hàng', () => {
     console.log('Message:', response.body.message || response.body.errors || 'N/A')
     console.log('')
     
-    // Nếu có validation sẽ trả về 400, nếu không sẽ trả về 200
-    expect([200, 400]).toContain(response.status)
+    expect(response.status).toBe(400)
+    expect(response.body.message).toContain('Tên cửa hàng là bắt buộc')
   })
 
   test('TT 3: Tên cửa hàng > 100 ký tự => Thất bại', async () => {
@@ -131,7 +131,8 @@ describe('Bảng Testcase - Sửa thông tin cửa hàng', () => {
     console.log('Name length:', longName.length)
     console.log('')
     
-    expect([200, 400]).toContain(response.status)
+    expect(response.status).toBe(400)
+    expect(response.body.message).toContain('100 ký tự')
   })
 
   test('TT 4: Slogan > 200 ký tự => Thất bại', async () => {
@@ -159,7 +160,8 @@ describe('Bảng Testcase - Sửa thông tin cửa hàng', () => {
     console.log('Slogan length:', longSlogan.length)
     console.log('')
     
-    expect([200, 400]).toContain(response.status)
+    expect(response.status).toBe(400)
+    expect(response.body.message).toContain('200 ký tự')
   })
 
   test('TT 5: Thông báo > 300 ký tự => Thất bại', async () => {
@@ -187,7 +189,8 @@ describe('Bảng Testcase - Sửa thông tin cửa hàng', () => {
     console.log('Announcement length:', longAnnouncement.length)
     console.log('')
     
-    expect([200, 400]).toContain(response.status)
+    expect(response.status).toBe(400)
+    expect(response.body.message).toContain('300 ký tự')
   })
 
   test('TT 6: Không có danh mục => Thất bại', async () => {
@@ -214,7 +217,8 @@ describe('Bảng Testcase - Sửa thông tin cửa hàng', () => {
     console.log('Categories:', response.body.categories || [])
     console.log('')
     
-    expect([200, 400]).toContain(response.status)
+    expect(response.status).toBe(400)
+    expect(response.body.message).toContain('ít nhất một danh mục')
   })
 
   test('TT 7: Danh mục > 50 ký tự => Thất bại', async () => {
@@ -242,7 +246,8 @@ describe('Bảng Testcase - Sửa thông tin cửa hàng', () => {
     console.log('Category length:', longCategory.length)
     console.log('')
     
-    expect([200, 400]).toContain(response.status)
+    expect(response.status).toBe(400)
+    expect(response.body.message).toContain('50 ký tự')
   })
 
   test('TT 8: Liên lạc không đúng định dạng (fb123) => Thất bại', async () => {
@@ -269,7 +274,8 @@ describe('Bảng Testcase - Sửa thông tin cửa hàng', () => {
     console.log('Contact meta:', response.body.contact?.meta || 'N/A')
     console.log('')
     
-    expect([200, 400]).toContain(response.status)
+    expect(response.status).toBe(400)
+    expect(response.body.message).toContain('không hợp lệ')
   })
 
   test('TT 9: Ảnh hero không đúng định dạng (.html) => Thất bại', async () => {
@@ -296,6 +302,8 @@ describe('Bảng Testcase - Sửa thông tin cửa hàng', () => {
     console.log('Hero Image:', response.body.heroImage || 'N/A')
     console.log('')
     
+    // Note: heroImage validation không có trong code mới, chỉ validate URL contact
+    // Test này có thể pass (200) vì không có validation cho heroImage
     expect([200, 400]).toContain(response.status)
   })
 })
