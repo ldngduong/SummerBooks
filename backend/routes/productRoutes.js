@@ -1,8 +1,55 @@
 const express = require("express");
 const Product = require("../models/Product");
 const { protect, admin } = require("../middleware/authMiddleware");
+const https = require("https");
+const http = require("http");
+const { URL } = require("url");
 
 const router = express.Router();
+
+// Helper function để kiểm tra kích thước ảnh từ URL
+const checkImageSize = (imageUrl) => {
+  return new Promise((resolve) => {
+    try {
+      const parsedUrl = new URL(imageUrl);
+      const client = parsedUrl.protocol === "https:" ? https : http;
+      const maxSize = 25 * 1024 * 1024; // 25MB
+
+      const request = client.request(
+        {
+          method: "HEAD",
+          hostname: parsedUrl.hostname,
+          path: parsedUrl.pathname + parsedUrl.search,
+          protocol: parsedUrl.protocol,
+        },
+        (response) => {
+          const contentLength = response.headers["content-length"];
+          if (contentLength && parseInt(contentLength) > maxSize) {
+            resolve(false);
+          } else {
+            resolve(true);
+          }
+          response.destroy();
+        }
+      );
+
+      request.on("error", () => {
+        // Nếu không thể kiểm tra, cho phép (có thể là URL không hợp lệ hoặc không truy cập được)
+        resolve(true);
+      });
+
+      request.setTimeout(5000, () => {
+        request.destroy();
+        resolve(true); // Timeout, cho phép để không block
+      });
+
+      request.end();
+    } catch (error) {
+      // Nếu URL không hợp lệ, cho phép (sẽ được validate ở chỗ khác)
+      resolve(true);
+    }
+  });
+};
 
 // post /api/products - create new product - private/admin
 router.post("/", protect, admin, async (req, res) => {
@@ -19,85 +66,70 @@ router.post("/", protect, admin, async (req, res) => {
       publishedAt,
     } = req.body;
 
-    const validationErrors = [];
-
-    // Validation cho Tên sách: Bắt buộc, chuỗi ký tự, độ dài không quá 250 ký tự
-    if (!name || (typeof name === 'string' && name.trim() === "")) {
-      validationErrors.push("Vui lòng nhập đầy đủ thông tin");
-    } else if (typeof name === 'string' && name.trim().length > 250) {
-      validationErrors.push("Tên sách không được vượt quá 250 ký tự");
+    // Kiểm tra các trường bắt buộc trống
+    if (!name || (typeof name === 'string' && name.trim() === "") ||
+        !description || (typeof description === 'string' && description.trim() === "") ||
+        price === "" || price === null || price === undefined ||
+        countOfPage === "" || countOfPage === null || countOfPage === undefined ||
+        countInStock === "" || countInStock === null || countInStock === undefined ||
+        !category || category === "" ||
+        !author || (typeof author === 'string' && author.trim() === "") ||
+        !publishedAt || publishedAt === "" ||
+        !images || !Array.isArray(images) || images.length === 0) {
+      return res.status(400).json({ message: 'Vui lòng nhập đầy đủ thông tin' });
     }
 
-    // Validation cho Tác giả: Bắt buộc, chuỗi ký tự, tối thiểu 3 ký tự và tối đa 50 ký tự
-    if (!author || (typeof author === 'string' && author.trim() === "")) {
-      validationErrors.push("Vui lòng nhập đầy đủ thông tin");
-    } else if (typeof author === 'string') {
-      const authorTrimmed = author.trim();
-      if (authorTrimmed.length < 3) {
-        validationErrors.push("Tác giả phải có tối thiểu 3 ký tự");
-      } else if (authorTrimmed.length > 50) {
-        validationErrors.push("Tác giả không được vượt quá 50 ký tự");
+    // Validation cho Tên sách: độ dài không quá 250 ký tự
+    if (typeof name === 'string' && name.trim().length > 250) {
+      return res.status(400).json({ message: 'Tên sách không được vượt quá 250 ký tự' });
+    }
+
+    // Validation cho Tác giả: tối thiểu 3 ký tự và tối đa 50 ký tự
+    if (typeof author === 'string' && (author.trim().length < 3 || author.trim().length > 50)) {
+      return res.status(400).json({ message: 'Tác giả phải có tối thiểu 3 ký tự không được vượt quá 50 ký tự' });
+    }
+
+    // Validation cho Mô tả: độ dài không quá 2000 ký tự
+    if (typeof description === 'string' && description.trim().length > 2000) {
+      return res.status(400).json({ message: 'Mô tả không được vượt quá 2000 ký tự' });
+    }
+
+    // Validation cho Giá bán: số tự nhiên, >= 1000 VNĐ
+    const priceNum = Number(price);
+    if (isNaN(priceNum) || priceNum <= 1000 || !Number.isInteger(priceNum)) {
+      return res.status(400).json({ message: 'Giá bán tối thiểu là 1.000 VNĐ' });
+    }
+
+    // Validation cho Số lượng tồn kho: số tự nhiên, >= 1
+    const stockNum = Number(countInStock);
+    if (isNaN(stockNum) || stockNum <= 0 || !Number.isInteger(stockNum)) {
+      return res.status(400).json({ message: 'Số lượng tồn kho tối thiểu là 1' });
+    }
+
+    // Validation cho Số trang: số tự nhiên, tối thiểu 24 trang
+    const pageNum = Number(countOfPage);
+    if (isNaN(pageNum) || pageNum < 24 || !Number.isInteger(pageNum)) {
+      return res.status(400).json({ message: 'Số trang tối thiểu là 24 trang' });
+    } 
+
+    // Validation cho Hình ảnh: định dạng JPG, JPEG, PNG, SVG và kích thước không quá 25MB
+    if (Array.isArray(images)) {
+      const allowedTypes = /jpeg|jpg|png|svg/;
+      for (const image of images) {
+        if (image && image.url) {
+          const urlLower = image.url.toLowerCase();
+          const hasValidExtension = allowedTypes.test(urlLower);
+          if (!hasValidExtension) {
+            return res.status(400).json({ message: 'Hình ảnh phải có định dạng JPG, JPEG, PNG hoặc SVG' });
+          }
+          
+          // Kiểm tra kích thước ảnh
+          const isValidSize = await checkImageSize(image.url);
+         if (!isValidSize) {
+           return res.status(400).json({ message: 'Kích thước hình ảnh không được vượt quá 25MB' });
+          }
+        }
       }
-    }
-
-    // Validation cho Mô tả: Bắt buộc, chuỗi ký tự, độ dài không quá 2000 ký tự
-    if (!description || (typeof description === 'string' && description.trim() === "")) {
-      validationErrors.push("Vui lòng nhập đầy đủ thông tin");
-    } else if (typeof description === 'string' && description.trim().length > 2000) {
-      validationErrors.push("Mô tả không được vượt quá 2000 ký tự");
-    }
-
-    // Validation cho Giá bán: Bắt buộc, số tự nhiên, >= 1000 VNĐ
-    if (price === "" || price === null || price === undefined) {
-      validationErrors.push("Vui lòng nhập đầy đủ thông tin");
-    } else {
-      const priceNum = Number(price);
-      if (isNaN(priceNum) || priceNum <= 0 || !Number.isInteger(priceNum)) {
-        validationErrors.push("Giá trị không hợp lệ");
-      } else if (priceNum < 1000) {
-        validationErrors.push("Giá bán tối thiểu là 1.000 VNĐ");
-      }
-    }
-
-    // Validation cho Số lượng tồn kho: Bắt buộc, số tự nhiên, >= 1
-    if (countInStock === "" || countInStock === null || countInStock === undefined) {
-      validationErrors.push("Vui lòng nhập đầy đủ thông tin");
-    } else {
-      const stockNum = Number(countInStock);
-      if (isNaN(stockNum) || stockNum <= 0 || !Number.isInteger(stockNum)) {
-        validationErrors.push("Số lượng tồn kho tối thiểu là 1");
-      }
-    }
-
-    // Validation cho Thể loại: Bắt buộc
-    if (!category || category === "") {
-      validationErrors.push("Vui lòng nhập đầy đủ thông tin");
-    }
-
-    // Validation cho Số trang: Bắt buộc, số tự nhiên, tối thiểu 24 trang
-    if (countOfPage === "" || countOfPage === null || countOfPage === undefined) {
-      validationErrors.push("Vui lòng nhập đầy đủ thông tin");
-    } else {
-      const pageNum = Number(countOfPage);
-      if (isNaN(pageNum) || pageNum < 0 || !Number.isInteger(pageNum)) {
-        validationErrors.push("Giá trị không hợp lệ");
-      } else if (pageNum < 24) {
-        validationErrors.push("Số trang tối thiểu là 24 trang");
-      }
-    }
-
-    // Validation cho Ngày xuất bản: Bắt buộc
-    if (!publishedAt || publishedAt === "") {
-      validationErrors.push("Vui lòng nhập đầy đủ thông tin");
-    }
-
-    // Validation cho Ảnh: Bắt buộc có ít nhất 1 ảnh
-    if (!images || !Array.isArray(images) || images.length === 0) {
-      validationErrors.push("Vui lòng nhập đầy đủ thông tin (cần ít nhất 1 ảnh)");
-    }
-
-    if (validationErrors.length > 0) {
-      return res.status(400).json({ errors: validationErrors });
     }
 
     const product = new Product({
@@ -144,104 +176,76 @@ router.put("/:id", protect, admin, async (req, res) => {
       return res.status(404).json({ message: "Không tìm thấy sản phẩm" });
     }
 
-    // Validation sản phẩm - đồng bộ với frontend (chỉ validate các trường được cung cấp)
-    const validationErrors = [];
+    // Kiểm tra các trường bắt buộc trống (chỉ validate các trường được cung cấp)
+    if ((name !== undefined && (!name || (typeof name === 'string' && name.trim() === ""))) ||
+        (description !== undefined && (!description || (typeof description === 'string' && description.trim() === ""))) ||
+        (price !== undefined && (price === "" || price === null || price === undefined)) ||
+        (countOfPage !== undefined && (countOfPage === "" || countOfPage === null || countOfPage === undefined)) ||
+        (countInStock !== undefined && (countInStock === "" || countInStock === null || countInStock === undefined)) ||
+        (category !== undefined && (!category || category === "")) ||
+        (author !== undefined && (!author || (typeof author === 'string' && author.trim() === ""))) ||
+        (publishedAt !== undefined && (!publishedAt || publishedAt === "")) ||
+        (images !== undefined && (!images || !Array.isArray(images) || images.length === 0))) {
+      return res.status(400).json({ message: 'Vui lòng nhập đầy đủ thông tin' });
+    }
 
-    // Validation cho Tên sách: Bắt buộc, chuỗi ký tự, độ dài không quá 250 ký tự
-    if (name !== undefined) {
-      if (!name || (typeof name === 'string' && name.trim() === "")) {
-        validationErrors.push("Vui lòng nhập đầy đủ thông tin");
-      } else if (typeof name === 'string' && name.trim().length > 250) {
-        validationErrors.push("Tên sách không được vượt quá 250 ký tự");
+    // Validation cho Tên sách: độ dài không quá 250 ký tự
+    if (name !== undefined && typeof name === 'string' && name.trim().length > 250) {
+      return res.status(400).json({ message: 'Tên sách không được vượt quá 250 ký tự' });
+    }
+
+     // Validation cho Tác giả: tối thiểu 3 ký tự và tối đa 50 ký tự
+     if (typeof author === 'string') {
+      const authorTrimmed = author.trim();
+      if (authorTrimmed.length < 3|| authorTrimmed.length > 50) {
+        return res.status(400).json({ message: 'Tác giả phải có tối thiểu 3 ký tự không được vượt quá 50 ký tự' });
+
       }
     }
 
-    // Validation cho Tác giả: Bắt buộc, chuỗi ký tự, tối thiểu 3 ký tự và tối đa 50 ký tự
-    if (author !== undefined) {
-      if (!author || (typeof author === 'string' && author.trim() === "")) {
-        validationErrors.push("Vui lòng nhập đầy đủ thông tin");
-      } else if (typeof author === 'string') {
-        const authorTrimmed = author.trim();
-        if (authorTrimmed.length < 3) {
-          validationErrors.push("Tác giả phải có tối thiểu 3 ký tự");
-        } else if (authorTrimmed.length > 50) {
-          validationErrors.push("Tác giả không được vượt quá 50 ký tự");
-        }
-      }
+    // Validation cho Mô tả: độ dài không quá 2000 ký tự
+    if (description !== undefined && typeof description === 'string' && description.trim().length > 2000) {
+      return res.status(400).json({ message: 'Mô tả không được vượt quá 2000 ký tự' });
     }
 
-    // Validation cho Mô tả: Bắt buộc, chuỗi ký tự, độ dài không quá 2000 ký tự
-    if (description !== undefined) {
-      if (!description || (typeof description === 'string' && description.trim() === "")) {
-        validationErrors.push("Vui lòng nhập đầy đủ thông tin");
-      } else if (typeof description === 'string' && description.trim().length > 2000) {
-        validationErrors.push("Mô tả không được vượt quá 2000 ký tự");
-      }
+    // Validation cho Giá bán: số tự nhiên, >= 1000 VNĐ
+    const priceNum = Number(price);
+    if (isNaN(priceNum) || priceNum <= 1000 || !Number.isInteger(priceNum)) {
+      return res.status(400).json({ message: 'Giá bán tối thiểu là 1.000 VNĐ' });
     }
 
-    // Validation cho Giá bán: Bắt buộc, số tự nhiên, >= 1000 VNĐ
-    if (price !== undefined) {
-      if (price === "" || price === null || price === undefined) {
-        validationErrors.push("Vui lòng nhập đầy đủ thông tin");
-      } else {
-        const priceNum = Number(price);
-        if (isNaN(priceNum) || priceNum <= 0 || !Number.isInteger(priceNum)) {
-          validationErrors.push("Giá trị không hợp lệ");
-        } else if (priceNum < 1000) {
-          validationErrors.push("Giá bán tối thiểu là 1.000 VNĐ");
-        }
-      }
-    }
-
-    // Validation cho Số lượng tồn kho: Bắt buộc, số tự nhiên, >= 1
+    // Validation cho Số lượng tồn kho: số tự nhiên, >= 1
     if (countInStock !== undefined) {
-      if (countInStock === "" || countInStock === null || countInStock === undefined) {
-        validationErrors.push("Vui lòng nhập đầy đủ thông tin");
-      } else {
-        const stockNum = Number(countInStock);
-        if (isNaN(stockNum) || stockNum <= 0 || !Number.isInteger(stockNum)) {
-          validationErrors.push("Số lượng tồn kho tối thiểu là 1");
+      const stockNum = Number(countInStock);
+      if (isNaN(stockNum) || stockNum <= 0 || !Number.isInteger(stockNum)) {
+        return res.status(400).json({ message: 'Số lượng tồn kho tối thiểu là 1' });
+      }
+    }
+
+    // Validation cho Số trang: số tự nhiên, tối thiểu 24 trang
+    const pageNum = Number(countOfPage);
+    if (isNaN(pageNum) || pageNum < 24 || !Number.isInteger(pageNum)) {
+      return res.status(400).json({ message: 'Số trang tối thiểu là 24 trang' });
+    } 
+
+    // Validation cho Hình ảnh: định dạng JPG, JPEG, PNG, SVG và kích thước không quá 25MB
+    if (images !== undefined && Array.isArray(images)) {
+      const allowedTypes = /jpeg|jpg|png|svg/;
+      for (const image of images) {
+        if (image && image.url) {
+          const urlLower = image.url.toLowerCase();
+          const hasValidExtension = allowedTypes.test(urlLower);
+          if (!hasValidExtension) {
+            return res.status(400).json({ message: 'Hình ảnh phải có định dạng JPG, JPEG, PNG hoặc SVG' });
+          }
+          
+          // Kiểm tra kích thước ảnh
+          const isValidSize = await checkImageSize(image.url);
+          if (!isValidSize) {
+            return res.status(400).json({ message: 'Kích thước hình ảnh không được vượt quá 25MB' });
+          }
         }
       }
-    }
-
-    // Validation cho Thể loại: Bắt buộc
-    if (category !== undefined) {
-      if (!category || category === "") {
-        validationErrors.push("Vui lòng nhập đầy đủ thông tin");
-      }
-    }
-
-    // Validation cho Số trang: Bắt buộc, số tự nhiên, tối thiểu 24 trang
-    if (countOfPage !== undefined) {
-      if (countOfPage === "" || countOfPage === null || countOfPage === undefined) {
-        validationErrors.push("Vui lòng nhập đầy đủ thông tin");
-      } else {
-        const pageNum = Number(countOfPage);
-        if (isNaN(pageNum) || pageNum < 0 || !Number.isInteger(pageNum)) {
-          validationErrors.push("Giá trị không hợp lệ");
-        } else if (pageNum < 24) {
-          validationErrors.push("Số trang tối thiểu là 24 trang");
-        }
-      }
-    }
-
-    // Validation cho Ngày xuất bản: Bắt buộc
-    if (publishedAt !== undefined) {
-      if (!publishedAt || publishedAt === "") {
-        validationErrors.push("Vui lòng nhập đầy đủ thông tin");
-      }
-    }
-
-    // Validation cho Ảnh: Bắt buộc có ít nhất 1 ảnh
-    if (images !== undefined) {
-      if (!images || !Array.isArray(images) || images.length === 0) {
-        validationErrors.push("Vui lòng nhập đầy đủ thông tin (cần ít nhất 1 ảnh)");
-      }
-    }
-
-    if (validationErrors.length > 0) {
-      return res.status(400).json({ errors: validationErrors });
     }
 
     // Chỉ cập nhật các trường được cung cấp
@@ -273,13 +277,16 @@ router.delete("/:id", protect, admin, async (req, res) => {
 
     if (product) {
       await product.deleteOne();
-      res.status(200).json(product);
+      res.status(200).json({ 
+        message: "Xóa thành công",
+        product: product 
+      });
     } else {
       res.status(404).json({ message: "Sản phẩm không tồn tại" });
     }
   } catch (error) {
     console.log(error);
-    res.status(500).send(error);
+    res.status(500).json({ message: "Lỗi server khi xóa sản phẩm" });
   }
 });
 

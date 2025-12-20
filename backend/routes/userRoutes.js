@@ -38,7 +38,7 @@ router.post('/register', async (req, res) => {
         // tạo payload, định dạng cần mã hóa và giải mã
         const payload = {user: {id: user._id, role: user.role}}
 
-        jwt.sign(payload, process.env.JWT_SECRET, {expiresIn: '40h'}, (err, token) => {
+      jwt.sign(payload, process.env.JWT_SECRET, {expiresIn: '40h'}, (err, token) => {
             if(err) throw err;
             res.status(201).json({
                 user: {
