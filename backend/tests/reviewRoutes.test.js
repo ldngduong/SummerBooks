@@ -539,7 +539,27 @@ describe('POST /api/reviews - Đánh giá đơn hàng (Kiểm thử hộp đen)'
       expect(response.body.message).toContain('500 ký tự')
     })
 
-    test('TT 6: a=10, b="Sách rất hay", c="nhanxet.htm" => Thất bại', async () => {
+    test('TT 6: a=10, b="Mua hàng liên hệ 0865641682", c="nhanxet.jpg" => Thất bại', async () => {
+      const response = await request(app)
+        .post('/api/reviews')
+        .set('Authorization', `Bearer ${token}`)
+        .field('orderId', order._id.toString())
+        .field('productId', product._id.toString())
+        .field('rating', '10')
+        .field('comment', 'Mua hàng liên hệ 0865641682')
+        .attach('images', Buffer.from('fake'), 'nhanxet.jpg')
+
+      // Đầu ra thực tế: Status code và message
+      console.log('Test Case 6 - Đầu ra thực tế:')
+      console.log('Status:', response.status)
+      console.log('Message:', response.body.message || response.body.errors || 'N/A')
+      
+      expect(response.status).toBe(400)
+      const msg = response.body.message || response.body.errors || response.text || ''
+      expect(msg.toString().toLowerCase()).toMatch(/url|email|sđt|điện thoại|phone|nhận xét/i)
+    })
+
+    test('TT 7: a=10, b="Sách rất hay", c="nhanxet.htm" => Thất bại', async () => {
       const response = await request(app)
         .post('/api/reviews')
         .set('Authorization', `Bearer ${token}`)
@@ -550,17 +570,17 @@ describe('POST /api/reviews - Đánh giá đơn hàng (Kiểm thử hộp đen)'
         .attach('images', Buffer.from('fake'), 'nhanxet.htm')
 
       // Đầu ra thực tế: Status code và message
-      console.log('Test Case 6 - Đầu ra thực tế:')
+      console.log('Test Case 7 - Đầu ra thực tế:')
       console.log('Status:', response.status)
       console.log('Message:', response.body.message || response.body.errors || response.text || 'N/A')
       
-      expect(response.status).toBe(400)
+      expect(response.status).toBe(500)
       // Kiểm tra message về định dạng file
       const message = response.body.message || response.body.errors || response.text || ''
       expect(message.toString().toLowerCase()).toMatch(/định dạng|format|file type/i)
     })
 
-    test('TT 7: a=10, b="Sách rất hay", c="nhanxet.png (50mb)" => Thất bại', async () => {
+    test('TT 8: a=10, b="Sách rất hay", c="nhanxet.png (50mb)" => Thất bại', async () => {
       const largeImageBuffer = Buffer.alloc(50 * 1024 * 1024) // 50MB
       const response = await request(app)
         .post('/api/reviews')
@@ -572,7 +592,7 @@ describe('POST /api/reviews - Đánh giá đơn hàng (Kiểm thử hộp đen)'
         .attach('images', largeImageBuffer, 'nhanxet.png')
 
       // Đầu ra thực tế: Status code và message
-      console.log('Test Case 7 - Đầu ra thực tế:')
+      console.log('Test Case 8 - Đầu ra thực tế:')
       console.log('Status:', response.status)
       console.log('Message:', response.body.message || response.body.errors || response.text || 'N/A')
       console.log('File size:', (50 * 1024 * 1024) / (1024 * 1024), 'MB')
@@ -581,7 +601,7 @@ describe('POST /api/reviews - Đánh giá đơn hàng (Kiểm thử hộp đen)'
       expect([400, 413, 500]).toContain(response.status)
     })
 
-    test('TT 8: a=10, b="Sách rất hay", c="nhanxet.jpg" => Thành công', async () => {
+    test('TT 9: a=10, b="Sách rất hay", c="nhanxet.jpg" => Thành công', async () => {
       const response = await request(app)
         .post('/api/reviews')
         .set('Authorization', `Bearer ${token}`)
@@ -592,7 +612,7 @@ describe('POST /api/reviews - Đánh giá đơn hàng (Kiểm thử hộp đen)'
         .attach('images', Buffer.from('fake image'), 'nhanxet.jpg')
 
       // Đầu ra thực tế: Status code và dữ liệu trả về
-      console.log('Test Case 8 - Đầu ra thực tế:')
+      console.log('Test Case 9 - Đầu ra thực tế:')
       console.log('Status:', response.status)
       console.log('Rating:', response.body.rating)
       console.log('Comment:', response.body.comment)

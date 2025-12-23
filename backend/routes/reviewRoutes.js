@@ -106,7 +106,7 @@ router.post('/', protect, upload.array('images', 5), async (req, res) => {
             return res.status(400).json({ message: "Đơn hàng chưa hoàn thành, chưa thể đánh giá" })
         }
 
-        // Check if order has deliveredAt
+        // Check if order has deliveredAtes.status(400).json({ message: "Sản phẩm không có trong đơn hàng này" })
         if (!order.deliveredAt) {
             // If status is 'Đã giao' but no deliveredAt, set it to now
             order.deliveredAt = new Date()
@@ -127,7 +127,7 @@ router.post('/', protect, upload.array('images', 5), async (req, res) => {
             item => item.productId.toString() === productId.toString()
         )
         if (!productInOrder) {
-            return res.status(400).json({ message: "Sản phẩm không có trong đơn hàng này" })
+            return res.status(400).json({ message: "Sản phẩm không có trong đơn hàng này" }) 
         }
 
         // Check if review already exists
