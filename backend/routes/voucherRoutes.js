@@ -224,18 +224,18 @@ router.put("/:id", protect, admin, async (req, res) => {
           message: "Giá trị giảm (%) không được để trống",
           field: "value",
         });
-      if (!/^\d+$/.test(value.toString().trim()))
-        return res.status(400).json({
-          message:
-            "Gía trị giảm giá theo % không chứa ký tự chữ và ký tự đặc biệt",
-          field: "value",
-        });
       if (
         parseFloat(value.toString().trim()) < 1 ||
         parseFloat(value.toString().trim()) > 100
       )
         return res.status(400).json({
           message: "Giá trị giảm (%) phải nằm trong khoảng từ 1 đến 100",
+          field: "value",
+        });
+      if (!/^\d+$/.test(value.toString().trim()))
+        return res.status(400).json({
+          message:
+            "Gía trị giảm giá theo % không chứa ký tự chữ và ký tự đặc biệt",
           field: "value",
         });
 
@@ -287,6 +287,15 @@ router.put("/:id", protect, admin, async (req, res) => {
           message: "Số lượt còn lại không được để trống",
           field: "remain",
         });
+      if (
+        parseFloat(remain.toString().trim()) < 1 ||
+        parseFloat(remain.toString().trim()) > 100
+      )
+        return res.status(400).json({
+          message: "Số lượt còn lại phải nằm trong khoảng từ 1 đến 100",
+          field: "remain",
+        });
+
       if (!/^\d+$/.test(remain.toString().trim()))
         return res.status(400).json({
           message: "Số lượt còn lại không chứa ký tự đặc biệt và chữ cái",
@@ -296,14 +305,6 @@ router.put("/:id", protect, admin, async (req, res) => {
         return res
           .status(400)
           .json({ message: "Nhập đúng định dạng", field: "remain" });
-      if (
-        parseFloat(remain.toString().trim()) < 1 ||
-        parseFloat(remain.toString().trim()) > 100
-      )
-        return res.status(400).json({
-          message: "Số lượt còn lại phải nằm trong khoảng từ 1 đến 100",
-          field: "remain",
-        });
 
       // E23: Trạng thái
       if (!status?.toString().trim())

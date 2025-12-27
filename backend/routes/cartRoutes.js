@@ -199,9 +199,9 @@ router.post("/checkout", protect, async (req, res) => {
       });
     }
 
-    if (nameTrimmed.length > 50) {
+    if (nameTrimmed.length < 5 || nameTrimmed.length > 50) {
       return res.status(400).json({
-        message: "Họ và tên không được quá 50 ký tự",
+        message: "Họ và tên không được quá 50 ký tự hoặc nhỏ hơn 5 ký tự",
         field: "name",
       });
     }
@@ -252,9 +252,9 @@ router.post("/checkout", protect, async (req, res) => {
       });
     }
 
-    if (addressTrimmed.length > 100) {
+    if (addressTrimmed.length < 10 || addressTrimmed.length > 100) {
       return res.status(400).json({
-        message: "Địa chỉ không được quá 100 ký tự",
+        message: "Địa chỉ không được quá 100 ký tự và nhỏ hơn 10 ký tự",
         field: "address",
       });
     }
