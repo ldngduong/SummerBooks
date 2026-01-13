@@ -20,14 +20,14 @@ const seedData = async () => {
         const createdUser = await User.create({
             name: 'Admin',
             email: 'admin@summerbooks.com',
-            password: '123456',
+            password: 'Admin123!@#',
             role: 'Quản trị viên',
         })
 
         const userID = createdUser._id;
 
         const sampleProducts = products.map((product) => {
-            return {...product, user: userID}
+            return { ...product, user: userID }
         })
 
         await Product.insertMany(sampleProducts)

@@ -22,55 +22,74 @@ import GiftVoucher from "./components/Admin/GiftVoucher";
 import AdminOrderDetail from "./components/Admin/AdminOrderDetail";
 import EditProduct from "./components/Admin/EditProduct";
 import ProtectedRoute from "./components/Common/ProtectedRoute";
-import {useDispatch, useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
 import { fetchShopManager } from "./redux/slices/shopManagerSlice";
 import FullLoading from './components/Common/FullLoading'
 function App() {
   const dispatch = useDispatch();
-  const { shopManager } = useSelector((state) => state.shopManager);
+  const { shopManager, loading, error } = useSelector((state) => state.shopManager);
 
   useEffect(() => {
     dispatch(fetchShopManager());
   }, [dispatch]);
-  if(!shopManager){
-    return <FullLoading />
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 text-red-600">
+        <h2 className="text-2xl font-bold mb-2">Đã có lỗi xảy ra</h2>
+        <p className="text-lg">{typeof error === 'string' ? error : 'Không thể kết nối đến server'}</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+        >
+          Thử lại
+        </button>
+      </div>
+    );
   }
+
+  if (loading && !shopManager) {
+    return <FullLoading />;
+  }
+
+  if (!shopManager) return null;
+
   return (
-        <>
-        <title>{shopManager.name}</title>
-        <BrowserRouter>
-          <Toaster position="top-right" />
-          <Routes>
-            <Route path="/" element={<UserLayout />}>
-              <Route index element={<Home />} />
-              <Route path="login" element={<Login />} />
-              <Route path="register" element={<Register />} />
-              <Route path="profile" element={<Profile />} />
-              <Route path="my-vouchers" element={<UserVouchers />} />
-              <Route path="collections/:collection" element={<CollectionsPage />} />
-              <Route path="product/:id" element={<ProductsDetails />} />
-              <Route path="checkout" element={<Checkout />} />
-              <Route path="order-confirmation" element={<OrderConfirmation />} />
-              <Route path="order/:id" element={<OrderDetails />} />
-            </Route>
-            <Route
-              path="/admin"
-              element={<ProtectedRoute role="admin"><AdminLayout /></ProtectedRoute>}
-            >
-              <Route index element={<AdminHome />} />
-              <Route path="users" element={<UserManager />} />
-              <Route path="orders" element={<OrderManager />} />
-              <Route path="orders/:id" element={<AdminOrderDetail />} />
-              <Route path="products" element={<ProductManager />} />
-              <Route path="vouchers" element={<VoucherManager />} />
-              <Route path="vouchers/:id/gift" element={<GiftVoucher />} />
-              <Route path="shop-manager" element={<ShopManager />} />
-              <Route path="products/:id/edit" element={<EditProduct />} />
-            </Route>
-          </Routes>
-        </BrowserRouter>
-        </>
+    <>
+      <title>{shopManager.name}</title>
+      <BrowserRouter>
+        <Toaster position="top-right" />
+        <Routes>
+          <Route path="/" element={<UserLayout />}>
+            <Route index element={<Home />} />
+            <Route path="login" element={<Login />} />
+            <Route path="register" element={<Register />} />
+            <Route path="profile" element={<Profile />} />
+            <Route path="my-vouchers" element={<UserVouchers />} />
+            <Route path="collections/:collection" element={<CollectionsPage />} />
+            <Route path="product/:id" element={<ProductsDetails />} />
+            <Route path="checkout" element={<Checkout />} />
+            <Route path="order-confirmation" element={<OrderConfirmation />} />
+            <Route path="order/:id" element={<OrderDetails />} />
+          </Route>
+          <Route
+            path="/admin"
+            element={<ProtectedRoute role="admin"><AdminLayout /></ProtectedRoute>}
+          >
+            <Route index element={<AdminHome />} />
+            <Route path="users" element={<UserManager />} />
+            <Route path="orders" element={<OrderManager />} />
+            <Route path="orders/:id" element={<AdminOrderDetail />} />
+            <Route path="products" element={<ProductManager />} />
+            <Route path="vouchers" element={<VoucherManager />} />
+            <Route path="vouchers/:id/gift" element={<GiftVoucher />} />
+            <Route path="shop-manager" element={<ShopManager />} />
+            <Route path="products/:id/edit" element={<EditProduct />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </>
   );
 }
 
