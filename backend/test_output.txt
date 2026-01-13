@@ -1,0 +1,258 @@
+
+> backend@1.0.0 test:shop
+> jest tests/shopManagerTestcase.test.js --no-coverage
+
+  console.log
+    Test Case 1 - ─Éß║ºu ra thß╗▒c tß║┐:
+
+      at Object.log (tests/shopManagerTestcase.test.js:72:13)
+
+  console.log
+    Status: 200
+
+      at Object.log (tests/shopManagerTestcase.test.js:73:13)
+
+  console.log
+    Name: SummerBooks
+
+      at Object.log (tests/shopManagerTestcase.test.js:74:13)
+
+  console.log
+    Categories: [ 'S├ích gi├ío khoa', 'Tiß╗âu thuyß║┐t' ]
+
+      at Object.log (tests/shopManagerTestcase.test.js:75:13)
+
+  console.log
+
+
+      at Object.log (tests/shopManagerTestcase.test.js:76:13)
+
+  console.log
+    Test Case 2 - ─Éß║ºu ra thß╗▒c tß║┐:
+
+      at Object.log (tests/shopManagerTestcase.test.js:100:13)
+
+  console.log
+    Status: 400
+
+      at Object.log (tests/shopManagerTestcase.test.js:101:13)
+
+  console.log
+    Message: T├¬n cß╗¡a h├áng l├á bß║»t buß╗Öc
+
+      at Object.log (tests/shopManagerTestcase.test.js:102:13)
+
+  console.log
+
+
+      at Object.log (tests/shopManagerTestcase.test.js:103:13)
+
+  console.log
+    Test Case 3 - ─Éß║ºu ra thß╗▒c tß║┐:
+
+      at Object.log (tests/shopManagerTestcase.test.js:128:13)
+
+  console.log
+    Status: 400
+
+      at Object.log (tests/shopManagerTestcase.test.js:129:13)
+
+  console.log
+    Message: T├¬n cß╗¡a h├áng kh├┤ng ─æ╞░ß╗úc v╞░ß╗út qu├í 100 k├╜ tß╗▒
+
+      at Object.log (tests/shopManagerTestcase.test.js:130:13)
+
+  console.log
+    Name length: 211
+
+      at Object.log (tests/shopManagerTestcase.test.js:131:13)
+
+  console.log
+
+
+      at Object.log (tests/shopManagerTestcase.test.js:132:13)
+
+  console.log
+    Test Case 4 - ─Éß║ºu ra thß╗▒c tß║┐:
+
+      at Object.log (tests/shopManagerTestcase.test.js:157:13)
+
+  console.log
+    Status: 400
+
+      at Object.log (tests/shopManagerTestcase.test.js:158:13)
+
+  console.log
+    Message: Slogan kh├┤ng ─æ╞░ß╗úc v╞░ß╗út qu├í 200 k├╜ tß╗▒
+
+      at Object.log (tests/shopManagerTestcase.test.js:159:13)
+
+  console.log
+    Slogan length: 352
+
+      at Object.log (tests/shopManagerTestcase.test.js:160:13)
+
+  console.log
+
+
+      at Object.log (tests/shopManagerTestcase.test.js:161:13)
+
+  console.log
+    Test Case 5 - ─Éß║ºu ra thß╗▒c tß║┐:
+
+      at Object.log (tests/shopManagerTestcase.test.js:186:13)
+
+  console.log
+    Status: 400
+
+      at Object.log (tests/shopManagerTestcase.test.js:187:13)
+
+  console.log
+    Message: Th├┤ng b├ío kh├┤ng ─æ╞░ß╗úc v╞░ß╗út qu├í 300 k├╜ tß╗▒
+
+      at Object.log (tests/shopManagerTestcase.test.js:188:13)
+
+  console.log
+    Announcement length: 320
+
+      at Object.log (tests/shopManagerTestcase.test.js:189:13)
+
+  console.log
+
+
+      at Object.log (tests/shopManagerTestcase.test.js:190:13)
+
+  console.log
+    Test Case 6 - ─Éß║ºu ra thß╗▒c tß║┐:
+
+      at Object.log (tests/shopManagerTestcase.test.js:214:13)
+
+  console.log
+    Status: 400
+
+      at Object.log (tests/shopManagerTestcase.test.js:215:13)
+
+  console.log
+    Message: Phß║úi c├│ ├¡t nhß║Ñt mß╗Öt danh mß╗Ñc
+
+      at Object.log (tests/shopManagerTestcase.test.js:216:13)
+
+  console.log
+    Categories: []
+
+      at Object.log (tests/shopManagerTestcase.test.js:217:13)
+
+  console.log
+
+
+      at Object.log (tests/shopManagerTestcase.test.js:218:13)
+
+  console.log
+    Test Case 7 - ─Éß║ºu ra thß╗▒c tß║┐:
+
+      at Object.log (tests/shopManagerTestcase.test.js:243:13)
+
+  console.log
+    Status: 400
+
+      at Object.log (tests/shopManagerTestcase.test.js:244:13)
+
+  console.log
+    Message: Mß╗ùi danh mß╗Ñc kh├┤ng ─æ╞░ß╗úc v╞░ß╗út qu├í 50 k├╜ tß╗▒
+
+      at Object.log (tests/shopManagerTestcase.test.js:245:13)
+
+  console.log
+    Category length: 111
+
+      at Object.log (tests/shopManagerTestcase.test.js:246:13)
+
+  console.log
+
+
+      at Object.log (tests/shopManagerTestcase.test.js:247:13)
+
+  console.log
+    Test Case 8 - ─Éß║ºu ra thß╗▒c tß║┐:
+
+      at Object.log (tests/shopManagerTestcase.test.js:271:13)
+
+  console.log
+    Status: 400
+
+      at Object.log (tests/shopManagerTestcase.test.js:272:13)
+
+  console.log
+    Message: URL meta kh├┤ng hß╗úp lß╗ç
+
+      at Object.log (tests/shopManagerTestcase.test.js:273:13)
+
+  console.log
+    Contact meta: N/A
+
+      at Object.log (tests/shopManagerTestcase.test.js:274:13)
+
+  console.log
+
+
+      at Object.log (tests/shopManagerTestcase.test.js:275:13)
+
+  console.log
+    Test Case 9 - ─Éß║ºu ra thß╗▒c tß║┐:
+
+      at Object.log (tests/shopManagerTestcase.test.js:299:13)
+
+  console.log
+    Status: 400
+
+      at Object.log (tests/shopManagerTestcase.test.js:300:13)
+
+  console.log
+    Message: ─Éß╗ïnh dß║íng ß║únh hero kh├┤ng hß╗úp lß╗ç
+
+      at Object.log (tests/shopManagerTestcase.test.js:301:13)
+
+  console.log
+    Hero Image: N/A
+
+      at Object.log (tests/shopManagerTestcase.test.js:302:13)
+
+  console.log
+
+
+      at Object.log (tests/shopManagerTestcase.test.js:303:13)
+
+FAIL tests/shopManagerTestcase.test.js (9.152 s)
+  Bß║úng Testcase - Sß╗¡a th├┤ng tin cß╗¡a h├áng
+    ΓêÜ TT 1: Tß║Ñt cß║ú hß╗úp lß╗ç => Th├ánh c├┤ng (1626 ms)
+    ΓêÜ TT 2: T├¬n cß╗¡a h├áng ─æß╗â trß╗æng => Thß║Ñt bß║íi (701 ms)
+    ΓêÜ TT 3: T├¬n cß╗¡a h├áng > 100 k├╜ tß╗▒ => Thß║Ñt bß║íi (713 ms)
+    ΓêÜ TT 4: Slogan > 200 k├╜ tß╗▒ => Thß║Ñt bß║íi (722 ms)
+    ΓêÜ TT 5: Th├┤ng b├ío > 300 k├╜ tß╗▒ => Thß║Ñt bß║íi (690 ms)
+    ΓêÜ TT 6: Kh├┤ng c├│ danh mß╗Ñc => Thß║Ñt bß║íi (683 ms)
+    ΓêÜ TT 7: Danh mß╗Ñc > 50 k├╜ tß╗▒ => Thß║Ñt bß║íi (685 ms)
+    ΓêÜ TT 8: Li├¬n lß║íc kh├┤ng ─æ├║ng ─æß╗ïnh dß║íng (fb123) => Thß║Ñt bß║íi (693 ms)
+    ├ù TT 9: ß║ónh hero kh├┤ng ─æ├║ng ─æß╗ïnh dß║íng (.html) => Thß║Ñt bß║íi (736 ms)
+
+  ΓùÅ Bß║úng Testcase - Sß╗¡a th├┤ng tin cß╗¡a h├áng ΓÇ║ TT 9: ß║ónh hero kh├┤ng ─æ├║ng ─æß╗ïnh dß║íng (.html) => Thß║Ñt bß║íi
+
+    expect(received).toContain(expected) // indexOf
+
+    Expected substring: "─æß╗ïnh dß║íng"
+    Received string:    "─Éß╗ïnh dß║íng ß║únh hero kh├┤ng hß╗úp lß╗ç"
+
+      304 |     
+      305 |     expect(response.status).toBe(400)
+    > 306 |     expect(response.body.message).toContain('─æß╗ïnh dß║íng')
+          |                                   ^
+      307 |   })
+      308 | })
+      309 |
+
+      at Object.toContain (tests/shopManagerTestcase.test.js:306:35)
+
+Test Suites: 1 failed, 1 total
+Tests:       1 failed, 8 passed, 9 total
+Snapshots:   0 total
+Time:        9.211 s, estimated 10 s
+Ran all test suites matching tests/shopManagerTestcase.test.js.

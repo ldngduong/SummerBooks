@@ -81,6 +81,13 @@ router.put("/", protect, admin, async (req, res) => {
       shopManager.heroImage = heroImage || shopManager.heroImage;
       shopManager.slogan = slogan || '';
 
+      // Validate heroImage
+      if (heroImage) {
+        if (!heroImage.match(/\.(jpg|jpeg|png|webp|gif)$/i)) {
+          return res.status(400).json({ message: 'Ảnh hero không đúng định dạng' });
+        }
+      }
+
       const updatedShopManager = await shopManager.save();
       res.status(200).json(updatedShopManager);
     } else {
@@ -100,6 +107,7 @@ router.put("/", protect, admin, async (req, res) => {
 router.get("/", async (req, res) => {
   try {
     const shopManager = await ShopManager.findById('shopmanager')
+    res.header('Cache-Control', 'no-cache, no-store, must-revalidate');
     res.status(200).json(shopManager);
   } catch (error) {
     console.log(error);

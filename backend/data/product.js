@@ -4,7 +4,7 @@ const products = [
     description: "Một tác phẩm được nhiều người bình chọn là hay nhất của Nguyễn Nhật Ánh...",
     price: 50000,
     countInStock: 20,
-    countOfPage: 20,
+    countOfPage: 100,
     category: "Tiểu thuyết",
     author: "Nguyễn Nhật Ánh",
     images: [
@@ -20,7 +20,7 @@ const products = [
     description: "Cuốn sách kể về hành trình phiêu lưu của chú dế mèn dũng cảm...",
     price: 40000,
     countInStock: 15,
-    countOfPage: 20,
+    countOfPage: 100,
     category: "Tiểu thuyết",
     author: "Tô Hoài",
     images: [
@@ -36,7 +36,7 @@ const products = [
     description: "Cuốn sách giải thích về các nguyên lý vật lý lượng tử một cách dễ hiểu...",
     price: 120000,
     countInStock: 10,
-    countOfPage: 20,
+    countOfPage: 100,
     category: "Sách khoa học",
     author: "Stephen Hawking",
     images: [
@@ -52,7 +52,7 @@ const products = [
     description: "Cuốn từ điển Anh - Việt đầy đủ nhất dành cho học sinh và sinh viên...",
     price: 80000,
     countInStock: 30,
-    countOfPage: 20,
+    countOfPage: 100,
     category: "Từ điển",
     author: "NXB Giáo dục",
     images: [
@@ -68,7 +68,7 @@ const products = [
     description: "Sách giáo khoa Toán lớp 12 theo chương trình giáo dục phổ thông...",
     price: 50000,
     countInStock: 40,
-    countOfPage: 20,
+    countOfPage: 100,
     category: "Sách giáo khoa",
     author: "Bộ Giáo dục và Đào tạo",
     images: [
