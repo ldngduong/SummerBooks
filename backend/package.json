@@ -12,6 +12,8 @@
     "test:review": "jest tests/reviewTestcase.test.js --no-coverage",
     "test:shop": "jest tests/shopManagerTestcase.test.js --no-coverage",
     "test:register": "jest tests/registerTestcase.test.js --no-coverage",
+    "test:register:routes": "jest tests/userRoutes.register.test.js --no-coverage --verbose",
+    "test:product": "jest tests/productTestcase.test.js --no-coverage",
     "check:db": "node scripts/checkMongoConnection.js"
   },
   "keywords": [],
